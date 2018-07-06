@@ -16,18 +16,6 @@ ORG &2000
     JSR  set_mode
     JSR  init_bits
 
-;    LDA  #&81
-;    LDY  #&ff
-;.onerow
-;    STA  screen, Y
-;    STA  screen + &200, Y
-;    STA  &7f00, Y
-;    DEY
-;    BNE  onerow
-;    STA  screen
-;    STA  screen + &200
-;    STA  &7f00
-    
     LDX  #&87
     LDY  #&8b
     LDA  #34
