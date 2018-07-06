@@ -1,0 +1,55 @@
+ORG &0
+
+GUARD &90
+
+.x0
+    SKIP 1
+.y0
+    SKIP 1
+.x1
+    SKIP 1
+.y1
+    SKIP 1
+.pixelmask
+    SKIP 2
+.dx
+    SKIP 1
+.dy
+    SKIP 1
+.plerror
+    SKIP 1
+.plx
+    SKIP 1
+.ply
+    SKIP 1
+.pllast
+    SKIP 1
+.bits
+    SKIP 8
+.leftbits
+    SKIP 8
+.rightbits
+    SKIP 8
+
+.current_screen_hi
+    SKIP 1
+
+.ltmpx
+    SKIP 1
+.ltmpy
+    SKIP 1
+.ltmpa
+    SKIP 1
+.laddr
+    SKIP 2
+.lstart
+    SKIP 1
+.lend
+    SKIP 2
+.lmask
+    SKIP 3
+.lpres
+    SKIP 2
+.jtmp
+    SKIP 1
+    

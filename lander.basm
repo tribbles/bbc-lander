@@ -1,0 +1,344 @@
+oswrch   = &ffee
+screen   = &6800
+screen1  = &5000
+screen2  = &6800
+
+map      = &4000 ; 64x64 map
+
+GUARD    screen1
+GUARD    map
+
+INCLUDE   "zeropage.basm"
+
+ORG &2000
+
+.start
+    JSR  set_mode
+    JSR  init_bits
+
+;    LDA  #&81
+;    LDY  #&ff
+;.onerow
+;    STA  screen, Y
+;    STA  screen + &200, Y
+;    STA  &7f00, Y
+;    DEY
+;    BNE  onerow
+;    STA  screen
+;    STA  screen + &200
+;    STA  &7f00
+    
+    LDX  #&87
+    LDY  #&8b
+    LDA  #34
+    JSR  hline
+    
+    LDX  #0
+    LDY  #7
+    LDA  #9
+    JSR  hline
+    LDX  #0
+    LDY  #6
+    LDA  #10
+    JSR  hline
+    LDX  #1
+    LDY  #7
+    LDA  #11
+    JSR  hline
+    LDX  #1
+    LDY  #6
+    LDA  #12
+    JSR  hline
+    LDX  #2
+    LDY  #5
+    LDA  #13
+    JSR  hline
+    LDX  #3
+    LDY  #4
+    LDA  #14
+    JSR  hline
+
+    LDX  #16
+    LDY  #23
+    LDA  #9
+    JSR  hline
+    LDX  #24
+    LDY  #31
+    LDA  #9
+    JSR  hline
+    LDX  #17
+    LDY  #23
+    LDA  #10
+    JSR  hline
+    LDX  #24
+    LDY  #30
+    LDA  #10
+    JSR  hline
+
+    LDX  #16
+    LDY  #31
+    LDA  #11
+    JSR  hline
+    LDX  #15
+    LDY  #32
+    LDA  #12
+    JSR  hline
+    
+    LDX  #3
+    JSR  set_colour
+
+    LDX  #12
+    LDY  #64
+    LDA  #13
+    JSR  hline
+    LDX  #5
+    LDY  #80
+    LDA  #14
+    JSR  hline
+    LDX  #5
+    LDY  #80
+    LDA  #15
+    JSR  hline
+    
+    LDX  #2
+    JSR  set_colour
+    
+    LDX  #192
+    LDY  #255
+    LDA  #190
+    JSR  hline
+    LDX  #192
+    LDY  #255
+    LDA  #191
+    JSR  hline
+
+    LDX  #4
+    JSR  set_colour
+
+    LDA  #255
+    LDX  #1
+    LDY  #124
+    JSR  vline
+    
+    LDA  #254
+    LDX  #0
+    LDY  #126
+    JSR  vline
+
+    LDA  #251
+    LDX  #126
+    LDY  #191
+    JSR  vline
+
+    LDX  #0
+    LDY  #191
+    JSR  pixel
+
+    LDX  #1
+    LDY  #190
+    JSR  pixel
+    
+    LDX  #4
+    LDY  #16
+    LDA  #191
+    JSR  hline
+    
+    LDX  #180
+    LDY  #191 - 4
+    LDA  #0
+    JSR  vline
+    
+    LDX  #2
+    JSR  set_colour
+    
+    LDA  #16
+    LDX  #16
+    LDY  #31
+.hblock
+    JSR  hlinep
+    CLC
+    ADC  #1
+    CMP  #32
+    BNE  hblock
+    
+    LDA  #16
+    LDX  #33
+    LDY  #48
+.vblock
+    JSR  vlinep
+    CLC
+    ADC  #1
+    CMP  #32
+    BNE  vblock
+    
+    LDX  #33
+.bh
+    LDY  #33
+.bv
+    JSR  pixelp
+    INY
+    TYA
+    CMP  #33 + 16
+    BNE  bv
+    INX
+    TXA
+    CMP  #33 + 16
+    BNE  bh
+    
+    LDX  #4
+    JSR  set_colour
+
+    LDA  #128
+    STA  x0
+    LDA  #200
+    STA  x1
+    LDA  #32
+    STA  y0
+    LDA  #48
+    STA  y1
+    JSR  plot_line
+    
+    LDX  #198
+    LDY  #48
+    JSR  pixelp
+    LDX  #202
+    JSR  pixelp
+    LDX  #200
+    LDY  #46
+    JSR  pixelp
+    LDY  #50
+    JSR  pixelp
+
+    LDX  #3
+    JSR  set_colour
+
+    LDA  #160
+    STA  x1
+    INC  y0
+    INC  y0
+    INC  y0
+    JSR  plot_line
+    
+    LDX  #4
+    JSR  set_colour
+
+    LDA  #103
+    STA  x0
+    LDA  #131
+    STA  x1
+    LDA  #32
+    STA  y0
+    LDA  #128
+    STA  y1
+    JSR  plot_line
+
+    LDA  #128
+    STA  x0
+    LDA  #200
+    STA  x1
+    LDA  #48
+    STA  y0
+    LDA  #32
+    STA  y1
+    JSR  plot_line
+
+    LDA  #103
+    STA  x1
+    LDA  #131
+    STA  x0
+    LDA  #32
+    STA  y0
+    LDA  #128
+    STA  y1
+    JSR  plot_line
+    
+    LDA  #64
+    STA  jtmp
+.lines_loop
+    LDA  #100
+    STA  x0
+    LDA  #70
+    STA  y0
+    LDA  jtmp
+    CLC
+    ADC  #96
+    STA  y1
+    LDA  #128 + 64
+    STA  x1
+    ;JSR  mark
+    JSR  plot_line
+
+    LDA  #100
+    STA  x0
+    LDA  #70
+    STA  y0
+    LDA  jtmp
+    CLC
+    ADC  #128
+    STA  x1
+    LDA  #96 + 64
+    STA  y1
+    ;JSR  mark
+    JSR  plot_line
+
+    LDA  #100
+    STA  x0
+    LDA  #70
+    STA  y0
+    LDA  #128
+    SEC
+    SBC  jtmp
+    STA  x1
+    LDA  #96 - 64
+    STA  y1
+    ;JSR  mark
+    JSR  plot_line
+    
+    LDA  #100
+    STA  x0
+    LDA  #70
+    STA  y0
+    LDA  #96
+    SEC
+    SBC  jtmp
+    STA  y1
+    LDA  #128 - 64
+    STA  x1
+    ;JSR  mark
+    JSR  plot_line
+    
+    LDA  jtmp
+    SEC  
+    SBC  #16
+    STA  jtmp
+    CMP  #&b0
+    BNE  lines_loop
+
+.endforever
+    JMP endforever
+
+.mark
+    LDX  x1
+    LDY  y1
+    DEX
+    DEX
+    JSR  pixelp
+    LDX  x1
+    INX
+    INX
+    JSR  pixelp
+    LDX  x1
+    INY
+    INY
+    JSR  pixelp
+    LDY  y1
+    DEY
+    DEY
+    JMP  pixelp
+
+INCLUDE  "screen.basm"
+INCLUDE  "draw.basm"
+
+.end
+
+SAVE "LANDER", start, end
