@@ -45,7 +45,25 @@ x  = ltmpa
     BCS  no_invert
     STX  y1
     STY  y0
+    LDX  y0
+    LDY  y1
 .no_invert
+    CPY  #23 * 8
+    BCC  nothigh
+    LDY  #23 * 8 - 1
+    STY  y1
+    CPY  y0
+    BEQ  vline_end
+    BCC  vline_end
+.nothigh
+    CPX  #16
+    BCS  notlow
+    LDX  #16
+    STX  y0
+    CPX  y1
+    BEQ  vline_end
+    BCS  vline_end
+.notlow
     AND  #&f8
     STA  laddr
     LDA  y0
@@ -110,6 +128,10 @@ x  = ltmpa
 ; Y = y
 x = ltmpx
 y = ltmpy
+    CPY  #16
+    BCC  drawrts
+    CPY  #23 * 8
+    BCS  drawrts
     STX  ltmpx
     STY  ltmpy
     
@@ -143,8 +165,9 @@ y = ltmpy
     AND  lmask + 2
     ORA  lmask
     STA  (laddr), y
-    RTS
 }
+.drawrts
+    RTS
 
 .hline
 {
@@ -155,6 +178,10 @@ y = ltmpy
 x0 = ltmpx
 x1 = ltmpy
 y  = ltmpa
+    CMP  #23 * 8
+    BCS  drawrts
+    CMP  #16
+    BCC  drawrts
     STX  x0
     CPY  x0
     BEQ  hpixel
@@ -163,8 +190,7 @@ y  = ltmpa
     BCS  noinvert
     STY  x0
     STX  x1
-    TXA
-    TAY
+    LDY  x1
     LDX  x0
 .noinvert
     AND  #&07

@@ -41,10 +41,10 @@ ula      = &fe20
 {
     LDA  x1
     EOR  x0
-    BEQ  plot_hline
+    BEQ  plot_vline
     LDA  y1
     EOR  y0
-    BEQ  plot_vline
+    BEQ  plot_hline
     
 .pl_restart    
     LDA  x1
@@ -348,3 +348,18 @@ ula      = &fe20
     EQUB 8        ; R11 (Cursor end)
     EQUB &0d      ; R12 (Display start, high)
     EQUB &00      ; R13 (Display end, low)
+
+.init_screen
+{
+    LDA  #&AA
+    LDY  #0
+.is_loop
+    STA  screen, Y
+    STA  screen + 256, Y
+    STA  screen + 23 * 256, Y
+    EOR  #&FF
+    DEY
+    BNE  is_loop
+    LDA  #0
+    RTS
+}

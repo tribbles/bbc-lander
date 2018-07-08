@@ -51,5 +51,21 @@ GUARD &90
 .lpres
     SKIP 2
 .jtmp
+    SKIP 3
+
+.matha
+    SKIP 2
+.mathb
     SKIP 1
+.mathc
+    SKIP 2
+
+.xlptr
+    SKIP 2
+.ylptr
+    SKIP 2
+.offset
+    SKIP 1
+.ocoord
+    SKIP 2
     
