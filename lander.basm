@@ -16,10 +16,17 @@ ORG &2000
     JSR  set_mode
     JSR  init_bits
     JSR  init_screen
+    JSR  clear_bank
+    JSR  swap_banks
+    JSR  clear_bank
     
     LDX  #4
     JSR  set_colour
+    LDA  #0
+    STA  xoffset
+    STA  yoffset
     
+.endforever
     LDA  #0
     STA  offset
 
@@ -31,27 +38,28 @@ ORG &2000
     ASL  A
     ASL  A
     ASL  A
-    ADC  #1
+    ADC  yoffset
     STA  jtmp + 2
     LDA  #6
     STA  jtmp + 1
 .xloop
     LDA  jtmp + 1
+    ASL  A
+    ASL  A
+    ASL  A
+    ADC  xoffset
     SEC
-    SBC  #3
-    ASL  A
-    ASL  A
-    ASL  A
+    SBC  #3 + 3 * 8
     TAY
     LDX  jtmp + 2
     JSR  depth
     
     LDA  mathc + 1
     CLC
-    ADC  #128
+    ADC  #127
     LDY  offset
     STA  xlocs, Y
-    LDY  #17
+    LDY  #18
     LDA  jtmp
     CMP  #3
     BNE  nojmp
@@ -153,8 +161,14 @@ ORG &2000
     BPL  xloop
 }
 
-.endforever
-    JMP endforever
+    JSR  swap_banks
+    JSR  clear_bank
+    INC  yoffset
+    LDA  yoffset
+    AND  #7
+    STA  yoffset
+    STA  xoffset
+    JMP  endforever
     
 .xlocs
     SKIP 7 * 7

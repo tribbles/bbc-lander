@@ -1,8 +1,9 @@
-.set_mode
-{
 crtcreg  = &fe00
 crtcval  = &fe01
 ula      = &fe20
+
+.set_mode
+{
 
     LDA  #22
     JSR  oswrch
@@ -354,12 +355,68 @@ ula      = &fe20
     LDA  #&AA
     LDY  #0
 .is_loop
-    STA  screen, Y
-    STA  screen + 256, Y
-    STA  screen + 23 * 256, Y
+    STA  screen1, Y
+    STA  screen1 + 256, Y
+    STA  screen2, Y
+    STA  screen2 + 256, Y
     EOR  #&FF
     DEY
     BNE  is_loop
-    LDA  #0
+    LDA  #255
+.is_loop2
+    STA  screen1 + 23 * 256, Y
+    STA  screen2 + 23 * 256, Y
+    DEY
+    DEY
+    DEY
+    DEY
+    DEY
+    DEY
+    DEY
+    DEY
+    BNE  is_loop2
     RTS
+}
+
+.clear_bank
+{
+    LDA  #0
+    LDY  #0
+    LDX  current_screen_hi
+    CPX  #HI(screen1)
+    BEQ  clr1
+.clr2
+FOR n, 2, 22
+    STA  screen2 + n * 256, Y
+NEXT
+    DEY
+    BNE  clr2
+    RTS
+.clr1
+FOR n, 2, 22
+    STA  screen1 + n * 256, Y
+NEXT
+    DEY
+    BNE  clr1
+    RTS
+}
+
+.swap_banks
+{
+osbyte   = &fff4
+
+    LDA  current_screen_hi
+    EOR  #HI(screen1) EOR HI(screen2)
+    STA  current_screen_hi
+    TAY
+    LSR  A
+    LSR  A
+    LSR  A
+    EOR  #(HI(screen1) EOR HI(screen2)) >> 3
+    LDX  #12
+    STX  crtcreg
+    STA  crtcval
+    ;CMP  #HI(screen1)
+    LDA  #19
+    JMP  osbyte
 }

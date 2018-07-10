@@ -68,4 +68,7 @@ GUARD &90
     SKIP 1
 .ocoord
     SKIP 2
-    
+.xoffset
+    SKIP 1
+.yoffset
+    SKIP 1

@@ -51,6 +51,6 @@
 ALIGN    128
 .divtable
     FOR  n, 1, 64
-    EQUW  40960 / (n + 31)
+    EQUW  36000 / (n + 31)
     NEXT
     
