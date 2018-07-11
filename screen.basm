@@ -352,30 +352,23 @@ ula      = &fe20
 
 .init_screen
 {
-    LDA  #&AA
     LDY  #0
 .is_loop
+    LDA  screen_data, Y
     STA  screen1, Y
-    STA  screen1 + 256, Y
     STA  screen2, Y
+    LDA  screen_data + 256, Y
+    STA  screen1 + 256, Y
     STA  screen2 + 256, Y
-    EOR  #&FF
-    DEY
-    BNE  is_loop
-    LDA  #255
-.is_loop2
+    LDA  screen_data + 512, Y
     STA  screen1 + 23 * 256, Y
     STA  screen2 + 23 * 256, Y
     DEY
-    DEY
-    DEY
-    DEY
-    DEY
-    DEY
-    DEY
-    DEY
-    BNE  is_loop2
+    BNE  is_loop
     RTS
+.screen_data
+    INCBIN "title.bin"
+    INCBIN "baseline.bin"
 }
 
 .clear_bank
