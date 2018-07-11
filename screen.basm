@@ -10,7 +10,7 @@ ula      = &fe20
     LDA  #4
     JSR  oswrch
     
-    LDY  #13
+    LDY  #15
 .crtc_loop
     LDA  modevars, Y
     STY  crtcreg
@@ -349,6 +349,8 @@ ula      = &fe20
     EQUB 8        ; R11 (Cursor end)
     EQUB &0d      ; R12 (Display start, high)
     EQUB &00      ; R13 (Display end, low)
+    EQUB &00      ; R14 (Cursor address, high)
+    EQUB &00      ; R15 (Cursor address, low)
 
 .init_screen
 {
