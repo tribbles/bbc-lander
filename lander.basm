@@ -3,10 +3,10 @@ screen   = &6800
 screen1  = &5000
 screen2  = &6800
 
-map      = &4000 ; 64x64 map
+;map      = &1000 ; 64x64 map
 
 GUARD    screen1
-GUARD    map
+;GUARD    map
 
 INCLUDE   "zeropage.basm"
 
@@ -197,6 +197,9 @@ ORG &2000
 INCLUDE  "screen.basm"
 INCLUDE  "draw.basm"
 INCLUDE  "math.basm"
+
+.map
+INCBIN   "map.bin"
 
 .end
 
