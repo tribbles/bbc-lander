@@ -25,31 +25,77 @@ ORG &2000
     LDA  #0
     STA  xoffset
     STA  yoffset
+
+    LDA #2
+    STA thrust
+
+    LDA #32
+    STA angle
     
 .endforever
-    LDA  #0
-    STA  offset
 
+; Loop 1 - calculate the X and Y coordinates of the map
 {
+    LDA  #0
+    STA  offset     ; We start off at this point
+
+    LDA mapx
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA xoffset     ; Calculate the fractional X map display
+
+    LDA mapy
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA yoffset     ; Calculate the fractional Y map display
+
     LDA  #6
-    STA  jtmp
+    STA  jtmp       ; This is the current Y coordinate
 .yloop
     LDA  jtmp
     ASL  A
     ASL  A
     ASL  A
-    ADC  yoffset
+    ADC  yoffset    ; This is the fractional offset
     STA  jtmp + 2
     LDA  #6
-    STA  jtmp + 1
+    STA  jtmp + 1   ; This is the current X coordinate
+; Calculate the map position
+    LDA mapy + 1
+    AND #63
+    CLC
+    ADC jtmp
+    TAX
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    CLC
+    ADC jtmp
+    ADC #LO(map)
+    STA mapaddr
+    TXA
+    LSR A
+    LSR A
+    CLC
+    ADC #HI(map)
+    STA mapaddr + 1
 .xloop
     LDA  jtmp + 1
     ASL  A
     ASL  A
     ASL  A
-    ADC  xoffset
+    ADC  xoffset    ; This is the fractional offset
     SEC
-    SBC  #3 + 3 * 8
+    SBC  #3 + 3 * 8 ; This moves the centre of the display
     TAY
     LDX  jtmp + 2
     JSR  depth
@@ -59,23 +105,31 @@ ORG &2000
     ADC  #127
     LDY  offset
     STA  xlocs, Y
-    LDY  #18
-    LDA  jtmp
-    CMP  #3
-    BNE  nojmp
-    LDA  jtmp + 1
-    CMP  #1
-    BNE  nojmp
-    INY
-.nojmp
+    ; Now we add in the map X offset
+    LDA mapx + 1
+    AND #63
+    CLC
+    ADC jtmp + 1
+    TAX
+    LDA (mapaddr, X)
+    TAY
+    ;LDY  #18        ; This is the map position!
+    ;LDA  jtmp
+    ;CMP  #3
+    ;BNE  nojmp
+    ;LDA  jtmp + 1
+    ;CMP  #5
+    ;BNE  nojmp
+    ;DEY
+;.nojmp
     LDX  jtmp + 2
     JSR  depth
     
     LDA  mathc + 1
-    ADC  #96
+    ADC  #96        ; This is the height
     LDY  offset
     STA  ylocs, Y
-    INC  offset
+    INC  offset     ; Go on to the next coordinate
     
     DEC  jtmp + 1
     BPL  xloop
@@ -83,6 +137,7 @@ ORG &2000
     BPL  yloop
 }
 
+; Loop 2 - draw the horizontal lines
 {
     LDA  #6
     STA  jtmp
@@ -117,6 +172,7 @@ ORG &2000
     BPL  xloop
 }
 
+; Loop 3 - draw the vertical linzes
 {
     LDA  #6
     STA  jtmp
@@ -163,11 +219,30 @@ ORG &2000
 
     JSR  swap_banks
     JSR  clear_bank
-    INC  yoffset
-    LDA  yoffset
-    AND  #7
-    STA  yoffset
-    STA  xoffset
+
+    LDA angle
+    LDY thrust
+    JSR sin
+    LDA mapy
+    CLC
+    ADC mathc
+    STA mapy
+    LDA mapy + 1
+    ADC mathc + 1
+    STA mapy + 1
+
+    LDA angle
+    LDY thrust
+    JSR cos
+    LDA mapx
+    CLC
+    ADC mathc
+    STA mapx
+    LDA mapx + 1
+    ADC mathc + 1
+    STA mapx + 1
+    INC angle
+
     JMP  endforever
     
 .xlocs
@@ -198,6 +273,7 @@ INCLUDE  "screen.6502"
 INCLUDE  "draw.6502"
 INCLUDE  "math.6502"
 
+    ALIGN 64
 .map
 INCBIN   "map.bin"
 

@@ -1,3 +1,5 @@
 *.ssd
 *.map
-
+.vs/
+bin/
+obj/

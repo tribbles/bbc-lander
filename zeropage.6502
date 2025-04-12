@@ -68,7 +68,22 @@ GUARD &90
     SKIP 1
 .ocoord
     SKIP 2
-.xoffset
+.xoffset    ; Fractional X offset (taken from bits 4..7 of mapx)
+    SKIP 1
+.yoffset    ; Fractional Y offset (taken from bits 4..7 of mapy)
+    SKIP 1
+.mapx       ; Fractional X offset (bits 0..7 = fraction, 8..13 = map X, 14..15 = zero)
     SKIP 2
-.yoffset
+.mapy       ; Fractional Y offset (bits 0..7 = fraction, 8..13 = map Y, 14..15 = zero)
     SKIP 2
+.mapaddr    ; Pointer to the map address that we'll be reading
+    SKIP 2
+
+.xspeed
+    SKIP 1
+.yspeed
+    SKIP 1
+.angle
+    SKIP 1
+.thrust
+    SKIP 1

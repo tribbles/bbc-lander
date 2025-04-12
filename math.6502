@@ -1,6 +1,7 @@
 .depth
-{
-; Y = X or Y; X = depth
+    ; Calculates the coordinate based on the given depth
+    ; Y = X or Y; X = depth
+    ; Populates mathc with the given calculation
     TXA
     ASL  A
     TAX
@@ -8,6 +9,9 @@
     STA  matha
     LDA  divtable + 1, X
     STA  matha + 1
+
+.multbyy
+{
     TYA
     PHP
     BPL  mulpos
@@ -48,9 +52,46 @@
     RTS
 }
 
+    ; Calculates the cosine of A (0..255), multiplied by Y
+.cos
+{
+    SEC
+    SBC #64
+}
+    ; Calculates the sine of A (0..255), multiplied by Y
+.sin
+{
+    CMP #0
+    BPL sinquad12   ; If positive, we don't need to negate Y
+    TAX             ; Here, we're relying on SIN(A + 180) = -SIN(A)
+    TYA
+    EOR #255
+    CLC
+    ADC #1
+    TAY             ; Negate Y
+    TXA
+    AND #127        ; And convert A to 0..180
+.sinquad12
+    CMP #64
+    BMI sinquad0
+    AND #63         ; Here, we're relying on SIN(A) = SIN(180 - A) where A = 90..179
+    EOR #63
+.sinquad0
+    TAX
+    LDA sintable, X
+    STA matha
+    LDA #0
+    STA matha + 1
+    JMP multbyy
+}
+
 ALIGN    128
 .divtable
     FOR  n, 1, 64
     EQUW  36000 / (n + 31)
     NEXT
-    
+.sintable
+    FOR  n, 0, 63
+    EQUB SIN(RAD(n * 90 / 64)) * 64
+    ;PRINT SIN(RAD(n * 90 / 64)) * 64
+    NEXT
