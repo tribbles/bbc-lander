@@ -1,0 +1,8 @@
+{
+    "beebvsc": {
+        "sourceFile": [
+            "lander.6502"
+        ],
+        "targetName": "lander.ssd"
+    }
+}

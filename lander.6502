@@ -203,4 +203,4 @@ INCBIN   "map.bin"
 
 .end
 
-SAVE "LANDER", start, end
+SAVE "Lander", start, end
