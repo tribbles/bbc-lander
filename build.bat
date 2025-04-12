@@ -1,1 +1,1 @@
-beebasm -i lander.basm -do lander.ssd -v -boot LANDER
+beebasm -i lander.6502 -do lander.ssd -v -boot LANDER

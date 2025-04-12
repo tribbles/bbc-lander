@@ -1,0 +1,329 @@
+.vlinep
+    PHA
+    STX  lpres + 0
+    STY  lpres + 1
+    JSR  vline
+    LDX  lpres + 0
+    LDY  lpres + 1
+    PLA
+    RTS
+
+.hlinep
+    PHA
+    STX  lpres + 0
+    STY  lpres + 1
+    JSR  hline
+    LDX  lpres + 0
+    LDY  lpres + 1
+    PLA
+    RTS
+
+.pixelp
+    PHA
+    STX  lpres + 0
+    STY  lpres + 1
+    JSR  pixel
+    LDX  lpres + 0
+    LDY  lpres + 1
+    PLA
+    RTS
+
+.vline
+{
+    ; X = y0
+    ; Y = y1
+    ; A = x
+    ; Registers NOT preserved
+y0 = ltmpx
+y1 = ltmpy
+x  = ltmpa
+    STX  y0
+    CPY  y0
+    BEQ  vpixel
+    STA  x
+    STY  y1
+    BCS  no_invert
+    STX  y1
+    STY  y0
+    LDX  y0
+    LDY  y1
+.no_invert
+    CPY  #23 * 8
+    BCC  nothigh
+    LDY  #23 * 8 - 1
+    STY  y1
+    CPY  y0
+    BEQ  vline_end
+    BCC  vline_end
+.nothigh
+    CPX  #16
+    BCS  notlow
+    LDX  #16
+    STX  y0
+    CPX  y1
+    BEQ  vline_end
+    BCS  vline_end
+.notlow
+    AND  #&f8
+    STA  laddr
+    LDA  y0
+    LSR  A
+    LSR  A
+    LSR  A
+    CLC
+    ADC  current_screen_hi
+    STA  laddr + 1
+    LDA  x
+    AND  #&7
+    TAX
+    LDA  bits, X
+    TAX
+    AND  pixelmask
+    STA  lmask
+    TXA
+    AND  pixelmask + 1
+    STA  lmask + 1
+    TXA
+    EOR  #&ff
+    STA  lmask + 2
+    LDA  y0
+    AND  #1
+    TAX
+    LDA  y1
+    SEC
+    SBC  y0
+    STA  y1
+    LDA  y0
+    AND  #7
+    TAY
+.vloop
+    LDA  (laddr), Y
+    AND  lmask + 2
+    ORA  lmask, X
+    STA  (laddr), Y
+    DEC  y1
+    BMI  vline_end
+    INY
+    TXA
+    EOR  #1
+    TAX
+    TYA
+    AND  #7
+    BNE  vloop
+    TAY
+    INC  laddr + 1
+    JMP  vloop
+.vline_end
+    RTS
+}
+
+.vpixel
+    TAX
+    TYA
+.hpixel
+    TAY
+.pixel
+{
+; X = y
+; Y = y
+x = ltmpx
+y = ltmpy
+    CPY  #16
+    BCC  drawrts
+    CPY  #23 * 8
+    BCS  drawrts
+    STX  ltmpx
+    STY  ltmpy
+    
+    TXA
+    AND  #&f8
+    STA  laddr
+    TYA
+    LSR  A
+    LSR  A
+    LSR  A
+    CLC
+    ADC  current_screen_hi
+    STA  laddr + 1
+    TXA
+    AND  #7
+    TAX
+    TYA
+    AND  #1
+    TAY
+    LDA  bits, X
+    TAX
+    AND  pixelmask, Y
+    STA  lmask
+    TXA
+    EOR  #&ff
+    STA  lmask + 2
+    LDA  ltmpy
+    AND  #7
+    TAY
+    LDA  (laddr), y
+    AND  lmask + 2
+    ORA  lmask
+    STA  (laddr), y
+}
+.drawrts
+    RTS
+
+.hline
+{
+    ; X = x0
+    ; Y = x1
+    ; A = y
+    ; Registers NOT preserved
+x0 = ltmpx
+x1 = ltmpy
+y  = ltmpa
+    CMP  #23 * 8
+    BCS  drawrts
+    CMP  #16
+    BCC  drawrts
+    STX  x0
+    CPY  x0
+    BEQ  hpixel
+    STA  y
+    STY  x1
+    BCS  noinvert
+    STY  x0
+    STX  x1
+    LDY  x1
+    LDX  x0
+.noinvert
+    AND  #&07
+    STA  laddr
+    AND  #&01
+    TAY
+    LDA  pixelmask, Y
+    STA  lmask
+    TXA
+    AND  #&f8
+    ORA  laddr
+    STA  laddr
+    LDA  y
+    CLC
+    LSR  A
+    LSR  A
+    LSR  A
+    CLC
+    ADC  current_screen_hi
+    STA  laddr+1
+; We have the start address and the mask
+    TXA
+    EOR  x1
+    AND  #&f8
+    BEQ  single_byte
+    
+; Write the left hand byte
+    LDA  x0
+    AND  #7
+    BEQ  hline_left
+    TAX
+    LDA  rightbits, X
+    TAX
+    AND  lmask
+    STA  lmask + 2
+    TXA
+    EOR  #&ff
+    LDY  #0
+    AND  (laddr), Y
+    ORA  lmask +2
+    STA  (laddr), Y
+    LDA  laddr
+    CLC
+    ADC  #8
+    STA  laddr
+.hline_run
+    LDA  x0
+    AND  #&f8
+    CLC
+    ADC  #&08
+    STA  x0
+.hline_left
+    LDA  x1
+    SEC
+    SBC  x0
+    STA  x1
+    ;INC  laddr
+    ;LDA  x1
+    LSR  A
+    LSR  A
+    LSR  A
+    BEQ  hline_singleremaining
+    STA  x0
+    LDX  lmask
+    LDY #0
+.hline_loop
+    TXA
+    STA  (laddr), Y
+    LDA  laddr
+    CLC
+    ADC  #&8
+    STA  laddr
+    DEC  x0
+    BNE  hline_loop
+.hline_singleremaining    
+    LDA  x1
+    AND  #7
+    TAX
+    LDA  leftbits, X
+    TAX
+    AND  lmask
+    STA  lmask + 2
+    TXA
+    EOR  #&ff
+    ;LDY  #0
+    AND  (laddr), Y
+    ORA  lmask + 2
+    STA  (laddr), Y
+    
+.hline_end
+    RTS
+    
+.single_byte
+    LDA  x0
+    AND  #7
+    BEQ  sb_left
+    TAX
+    LDA  x1
+    AND  #7
+    TAY
+    LDA  leftbits, Y
+    AND  rightbits, X
+    TAX
+    AND  lmask
+    STA  lmask + 2
+    TXA
+    EOR  #&ff
+    LDY  #0 
+    AND  (laddr), Y
+    ORA  lmask + 2
+    STA  (laddr), Y
+    RTS
+.sb_left
+    LDA  x1
+    AND  #7
+    CMP  #7
+    BEQ  sb_whole
+    TAX
+    LDA  leftbits, X
+    TAX
+    AND  lmask
+    STA  lmask + 2
+    TXA
+    EOR  #&ff
+    LDY  #0
+    AND  (laddr), Y
+    ORA  lmask + 2
+    STA  (laddr), Y
+    RTS
+.sb_whole
+    LDA  lmask
+    LDY  #0
+    STA  (laddr), Y
+    RTS
+}
+

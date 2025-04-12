@@ -1,0 +1,417 @@
+crtcreg  = &fe00
+crtcval  = &fe01
+ula      = &fe20
+
+.set_mode
+{
+
+    LDA  #22
+    JSR  oswrch
+    LDA  #4
+    JSR  oswrch
+    
+    LDY  #15
+.crtc_loop
+    LDA  modevars, Y
+    STY  crtcreg
+    STA  crtcval
+    DEY
+    BPL  crtc_loop
+.end_crtc
+
+    LDA  #&88
+    STA  ula
+    LDA  #&07
+.ula_loop
+    STA  ula + 1
+    EOR  #&87
+    STA  ula + 1
+    EOR  #&87
+    CLC
+    ADC  #&10
+    BPL  ula_loop
+    
+    LDA  #HI(screen)
+    STA  current_screen_hi
+    
+    LDX  #&4
+    JMP  set_colour
+}
+
+.plot_line
+{
+    LDA  x1
+    EOR  x0
+    BEQ  plot_vline
+    LDA  y1
+    EOR  y0
+    BEQ  plot_hline
+    
+.pl_restart    
+    LDA  x1
+    SEC
+    SBC  x0
+    BMI  pl_dxneg
+    STA  dx       ; dx = x1 - x0
+    LDX  #0
+    LDA  y1
+    SEC
+    SBC  y0
+    BPL  pl_dypos
+    INX
+    EOR  #&ff
+    CLC
+    ADC  #1
+.pl_dypos
+    STA  dy       ; dy = y1 - y0 (although if negative, it'll select a different quadrant)
+    
+    CMP  dx
+    BCC  pl_dxgtdy
+    INX
+    INX
+.pl_dxgtdy
+    LDA  quadrant_h, X
+    PHA
+    LDA  quadrant_l, X
+    PHA
+    RTS
+    
+.quadrant_h
+    EQUB HI(plq1 - 1), HI(plq2 - 1), HI(plq3 - 1), HI(plq4 - 1)
+.quadrant_l
+    EQUB LO(plq1 - 1), LO(plq2 - 1), LO(plq3 - 1), LO(plq4 - 1)
+
+.plot_vline
+    LDA  x0
+    LDX  y0
+    LDY  y1
+    JMP  vline
+    
+.plot_hline
+    LDA  y0
+    LDX  x0
+    LDY  x1
+    JMP  hline
+    
+.pl_dxneg
+    LDA  x1
+    LDX  x0
+    STA  x0
+    STX  x1
+    LDA  y1
+    LDX  y0
+    STX  y1
+    STA  y0
+    JMP  pl_restart
+}
+
+.plq1
+{
+; dy is +ve; dy is < dx
+    LDA  dx
+    LSR  A
+    EOR  #&ff
+    CLC
+    ADC  #1
+    STA  plerror  ; error = -(dx / 2)
+    LDA  x0
+    STA  plx      ; x = x0
+    STA  pllast
+    LDA  y0
+    STA  ply      ; y = y0
+.plq1_loop
+    LDX  plx
+    CPX  x1
+    BEQ  plq1_done
+    LDA  plerror
+    CLC
+    ADC  dy       ; error = error + dy
+    BPL  plq1_inc
+    STA  plerror
+    INC  plx
+    JMP  plq1_loop
+
+.plq1_inc
+    SEC
+    SBC  dx       ; error = error - dx
+    STA  plerror
+    
+    LDA  ply
+    LDX  pllast
+    LDY  plx
+    JSR  hline
+    INC  plx
+    LDA  plx
+    STA  pllast
+    INC  ply
+    JMP  plq1_loop
+    
+.plq1_done
+    LDA  ply
+    LDX  pllast
+    LDY  x1
+    JMP  hline
+}
+    
+.plq2
+{
+; dy is -ve; dy is < dx
+    LDA  dx
+    LSR  A
+    EOR  #&ff
+    CLC
+    ADC  #1
+    STA  plerror  ; error = -(dx / 2)
+    LDA  x0
+    STA  plx      ; x = x0
+    STA  pllast
+    LDA  y0
+    STA  ply      ; y = y0
+.plq2_loop
+    LDX  plx
+    CPX  x1
+    BEQ  plq2_done
+    LDA  plerror
+    CLC
+    ADC  dy       ; error = error + dy
+    BPL  plq2_inc
+    STA  plerror
+    INC  plx
+    JMP  plq2_loop
+
+.plq2_inc
+    SEC
+    SBC  dx       ; error = error - dx
+    STA  plerror
+    
+    LDA  ply
+    LDX  pllast
+    LDY  plx
+    JSR  hline
+    INC  plx
+    LDA  plx
+    STA  pllast
+    DEC  ply
+    JMP  plq2_loop
+    
+.plq2_done
+    LDA  ply
+    LDX  pllast
+    LDY  x1
+    JMP  hline
+}
+
+.plq3
+{
+; dy is +ve; dy > dx
+    LDA  dy
+    LSR  A
+    EOR  #&ff
+    CLC
+    ADC  #1
+    STA  plerror  ; error = -(dy / 2)
+    LDA  y0
+    STA  ply
+    STA  pllast
+    LDA  x0
+    STA  plx
+.plq3_loop
+    LDX  ply
+    CPX  y1
+    BEQ  plq3_done
+    LDA  plerror
+    CLC
+    ADC  dx       ; error = error + dx
+    BPL  plq3_inc
+    STA  plerror
+    INC  ply
+    JMP  plq3_loop
+    
+.plq3_inc
+    SEC
+    SBC  dy       ; error = error - dy
+    STA  plerror
+    LDA  plx
+    LDX  pllast
+    LDY  ply
+    JSR  vline
+    INC  ply
+    LDA  ply
+    STA  pllast
+    INC  plx
+    JMP  plq3_loop
+    
+.plq3_done
+    LDA  plx
+    LDX  pllast
+    LDY  y1
+    JMP  vline
+}
+
+.plq4
+{
+; dy is -ve; dy > dx
+    LDA  dy
+    LSR  A
+    EOR  #&ff
+    CLC
+    ADC  #1
+    STA  plerror  ; error = -(dy / 2)
+    LDA  y1
+    STA  ply
+    STA  pllast
+    LDA  x1
+    STA  plx
+.plq4_loop
+    LDX  ply
+    CPX  y0
+    BEQ  plq4_done
+    LDA  plerror
+    CLC
+    ADC  dx       ; error = error + dx
+    BPL  plq4_inc
+    STA  plerror
+    INC  ply
+    JMP  plq4_loop
+    
+.plq4_inc
+    SEC
+    SBC  dy       ; error = error - dy
+    STA  plerror
+    LDA  plx
+    LDX  pllast
+    LDY  ply
+    JSR  vline
+    INC  ply
+    LDA  ply
+    STA  pllast
+    DEC  plx
+    JMP  plq4_loop
+    
+.plq4_done
+    LDA  plx
+    LDX  pllast
+    LDY  y0
+    JMP  vline
+}
+
+.init_bits
+{
+    LDX  #7
+.initloop
+    LDA  initbp, X
+    STA  bits, X
+    LDA  initleft, X
+    STA  leftbits, X
+    LDA  initright, X
+    STA  rightbits, X
+    DEX
+    BPL  initloop
+    RTS
+.initbp
+    EQUB 128, 64, 32, 16, 8, 4, 2, 1
+    ;EQUB 1, 2, 4, 8, 16, 32, 64, 128
+.initleft
+    EQUB &80, &c0, &e0, &f0, &f8, &fc, &fe, &ff
+    ;EQUB &ff, &fe, &fc, &f8, &f0, &e0, &c0, &80
+.initright
+    ;EQUB &01, &03, &07, &0f, &1f, &3f, &7f, &ff
+    EQUB &ff, &7f, &3f, &1f, &0f, &07, &03, &01
+}
+
+.set_colour
+{
+; X is colour
+    LDA  c1, X
+    STA  pixelmask
+    LDA  c2, X
+    STA  pixelmask + 1
+    RTS
+
+.c1
+    EQUB &00, &55, &55, &ff, &ff
+.c2
+    EQUB &00, &00, &aa, &aa, &ff
+}
+
+.modevars
+    EQUB 63       ; R0 (Horizontal total)
+    EQUB 32       ; R1 (Horizontal displayed)
+    EQUB 49 - 4   ; R2 (Horizontal sync position)
+    EQUB &24      ; R3 (Sync width)
+    EQUB 38       ; R4 (Vertical total)
+    EQUB 0        ; R5 (Vertical total adjust)
+    EQUB 24       ; R6 (Vertical displayed)
+    EQUB 34 - 3   ; R7 (Vertical sync)
+    EQUB &c7      ; R8 (Interlace and display)
+    EQUB 7        ; R9 (Scan lines per charaqcter)
+    EQUB 0        ; R10 (Cursor start)
+    EQUB 8        ; R11 (Cursor end)
+    EQUB &0d      ; R12 (Display start, high)
+    EQUB &00      ; R13 (Display end, low)
+    EQUB &00      ; R14 (Cursor address, high)
+    EQUB &00      ; R15 (Cursor address, low)
+
+.init_screen
+{
+    LDY  #0
+.is_loop
+    LDA  screen_data, Y
+    STA  screen1, Y
+    STA  screen2, Y
+    LDA  screen_data + 256, Y
+    STA  screen1 + 256, Y
+    STA  screen2 + 256, Y
+    LDA  screen_data + 512, Y
+    STA  screen1 + 23 * 256, Y
+    STA  screen2 + 23 * 256, Y
+    DEY
+    BNE  is_loop
+    RTS
+.screen_data
+    INCBIN "title.bin"
+    INCBIN "baseline.bin"
+}
+
+.clear_bank
+{
+    LDA  #0
+    LDY  #0
+    LDX  current_screen_hi
+    CPX  #HI(screen1)
+    BEQ  clr1
+.clr2
+FOR n, 2, 22
+    STA  screen2 + n * 256, Y
+NEXT
+    DEY
+    BNE  clr2
+    RTS
+.clr1
+FOR n, 2, 22
+    STA  screen1 + n * 256, Y
+NEXT
+    DEY
+    BNE  clr1
+    RTS
+}
+
+.swap_banks
+{
+osbyte   = &fff4
+
+    LDA  current_screen_hi
+    EOR  #HI(screen1) EOR HI(screen2)
+    STA  current_screen_hi
+    TAY
+    LSR  A
+    LSR  A
+    LSR  A
+    EOR  #(HI(screen1) EOR HI(screen2)) >> 3
+    LDX  #12
+    STX  crtcreg
+    STA  crtcval
+    ;CMP  #HI(screen1)
+    LDA  #19
+    JMP  osbyte
+}
