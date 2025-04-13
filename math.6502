@@ -2,15 +2,14 @@
     ; Calculates the coordinate based on the given depth
     ; Y = X or Y; X = depth
     ; Populates mathc with the given calculation
-    TXA
-    ASL  A
-    TAX
-    LDA  divtable, X
+    LDA  divtableL, X
     STA  matha
-    LDA  divtable + 1, X
+    LDA  divtableH, X
     STA  matha + 1
 
 .multbyy
+    ; matha is the multiplier
+    ; Y is the other multiplier
 {
     TYA
     PHP
@@ -86,12 +85,17 @@
 }
 
 ALIGN    128
-.divtable
-    FOR  n, 1, 64
-    EQUW  36000 / (n + 31)
+divmax = 40000
+divadd = 33
+.divtableL
+    FOR n, 1, 64
+    EQUB LO(divmax / (n + divadd))
+    NEXT
+.divtableH
+    FOR n, 1, 64
+    EQUB HI(divmax / (n + divadd))
     NEXT
 .sintable
     FOR  n, 0, 63
     EQUB SIN(RAD(n * 90 / 64)) * 64
-    ;PRINT SIN(RAD(n * 90 / 64)) * 64
     NEXT

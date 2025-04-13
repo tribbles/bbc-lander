@@ -3,14 +3,17 @@ screen   = &6800
 screen1  = &5000
 screen2  = &6800
 
+displaysize = 7
+centresize = 3
+
 ;map      = &1000 ; 64x64 map
 
-GUARD    screen1
+    GUARD    screen1
 ;GUARD    map
 
-INCLUDE   "zeropage.6502"
+    INCLUDE   "zeropage.6502"
 
-ORG &2000
+    ORG &2000
 
 .start
     JSR  set_mode
@@ -55,7 +58,7 @@ ORG &2000
     LSR A
     STA yoffset     ; Calculate the fractional Y map display
 
-    LDA  #6
+    LDA  #displaysize - 1
     STA  jtmp       ; This is the current Y coordinate
 .yloop
     LDA  jtmp
@@ -64,13 +67,15 @@ ORG &2000
     ASL  A
     ADC  yoffset    ; This is the fractional offset
     STA  jtmp + 2
-    LDA  #6
-    STA  jtmp + 1   ; This is the current X coordinate
+
+
 ; Calculate the map position
     LDA mapy + 1
-    AND #63
+    SEC
+    SBC jtmp
     CLC
-    ADC jtmp
+    ADC #centresize ; Map centre Y
+    AND #63
     TAX
     ASL A
     ASL A
@@ -78,9 +83,6 @@ ORG &2000
     ASL A
     ASL A
     ASL A
-    CLC
-    ADC jtmp
-    ADC #LO(map)
     STA mapaddr
     TXA
     LSR A
@@ -88,14 +90,17 @@ ORG &2000
     CLC
     ADC #HI(map)
     STA mapaddr + 1
+
+    LDA  #displaysize - 1
+    STA  jtmp + 1   ; This is the current X coordinate
 .xloop
     LDA  jtmp + 1
     ASL  A
     ASL  A
     ASL  A
-    ADC  xoffset    ; This is the fractional offset
+    ADC  xoffset    ; This is the fractional offset (carry is clear; jtmp+1 is a maximum of 6)
     SEC
-    SBC  #3 + 3 * 8 ; This moves the centre of the display
+    SBC  #centresize + centresize * 8 ; This moves the centre of the display
     TAY
     LDX  jtmp + 2
     JSR  depth
@@ -105,28 +110,27 @@ ORG &2000
     ADC  #127
     LDY  offset
     STA  xlocs, Y
+
     ; Now we add in the map X offset
     LDA mapx + 1
-    AND #63
+    SEC
+    SBC jtmp + 1
     CLC
-    ADC jtmp + 1
-    TAX
-    LDA (mapaddr, X)
+    ADC #centresize ; Centre it
+    AND #63
     TAY
-    ;LDY  #18        ; This is the map position!
-    ;LDA  jtmp
-    ;CMP  #3
-    ;BNE  nojmp
-    ;LDA  jtmp + 1
-    ;CMP  #5
-    ;BNE  nojmp
-    ;DEY
-;.nojmp
+    LDA (mapaddr), Y
+    AND #63        ; Remove trees and whatever I want the other bit to be!
+    CLC
+    ADC #4
+    TAY
+
     LDX  jtmp + 2
     JSR  depth
     
     LDA  mathc + 1
-    ADC  #96        ; This is the height
+    CLC
+    ADC  #32        ; This is the height
     LDY  offset
     STA  ylocs, Y
     INC  offset     ; Go on to the next coordinate
@@ -139,12 +143,12 @@ ORG &2000
 
 ; Loop 2 - draw the horizontal lines
 {
-    LDA  #6
+    LDA  #displaysize - 1
     STA  jtmp
     LDA  #0
     STA  offset
 .xloop
-    LDA  #5
+    LDA  #displaysize - 2
     STA  jtmp + 1
     LDY  offset
     LDA  xlocs, Y
@@ -172,14 +176,15 @@ ORG &2000
     BPL  xloop
 }
 
+IF TRUE
 ; Loop 3 - draw the vertical linzes
 {
-    LDA  #6
+    LDA  #displaysize - 1
     STA  jtmp
     LDA  #0
     STA  offset
 .xloop
-    LDA  #5
+    LDA  #displaysize - 2
     STA  jtmp + 1
     LDY  offset
     LDA  xlocs, Y
@@ -188,7 +193,7 @@ ORG &2000
     STA  ocoord + 1
     LDA  offset
     CLC
-    ADC  #7
+    ADC  #displaysize
     STA  offset
 .yloop
     LDA  ocoord
@@ -204,19 +209,19 @@ ORG &2000
     STA  ocoord + 1
     LDA  offset
     CLC
-    ADC  #7
+    ADC  #displaysize
     STA  offset
     JSR  plot_line
     DEC  jtmp + 1
     BPL  yloop
     LDA  offset
     SEC
-    SBC  #7 * 7 - 1
+    SBC  #displaysize * displaysize - 1
     STA  offset
     DEC  jtmp
     BPL  xloop
 }
-
+ENDIF
     JSR  swap_banks
     JSR  clear_bank
 
@@ -246,9 +251,9 @@ ORG &2000
     JMP  endforever
     
 .xlocs
-    SKIP 7 * 7
+    SKIP displaysize * displaysize
 .ylocs
-    SKIP 7 * 7
+    SKIP displaysize * displaysize
 
 .mark
     LDX  x1
@@ -269,14 +274,14 @@ ORG &2000
     DEY
     JMP  pixelp
 
-INCLUDE  "screen.6502"
-INCLUDE  "draw.6502"
-INCLUDE  "math.6502"
+    INCLUDE  "screen.6502"
+    INCLUDE  "draw.6502"
+    INCLUDE  "math.6502"
 
-    ALIGN 64
+    ALIGN 256
 .map
-INCBIN   "map.bin"
-
+    INCBIN   "map.bin"
+    EQUB 0
 .end
 
-SAVE "Lander", start, end
+    SAVE "Lander", start, end

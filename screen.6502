@@ -4,7 +4,7 @@ ula      = &fe20
 
 .set_mode
 {
-
+; Set MODE 4
     LDA  #22
     JSR  oswrch
     LDA  #4
@@ -376,7 +376,7 @@ ula      = &fe20
 .clear_bank
 {
     LDA  #0
-    LDY  #0
+    TAY
     LDX  current_screen_hi
     CPX  #HI(screen1)
     BEQ  clr1
