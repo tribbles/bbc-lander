@@ -8,6 +8,7 @@ namespace MapMaker
         private static void Main(string[] args)
         {
             map = new double[64, 64];
+            const byte MaxY = 47;
 
             map[0, 0] = 48.0;
             divide(64);
@@ -31,22 +32,41 @@ namespace MapMaker
             {
                 for (int y = 0; y < 64; y++)
                 {
-                    var h = (map[x, y] - min) / delta * 64;
+                    var h = (byte)((map[x, y] - min) / delta * 64);
 
                     if (h < 0)
                     {
                         h = 0;
                     }
-                    if (h > 47)
+                    if (h > MaxY)
                     {
-                        h = 47;
+                        h = MaxY;
                     }
 
-                    data[x + y * 64] = (byte)h;
+                    data[x + y * 64] = h;
+                }
+            }
+
+            for (int x = 0; x < 64; x++)
+            {
+                for (int y = 0; y < 64; y++)
+                {
+                    if (GetY(x, y, data) != MaxY) continue;
+                    if (GetY(x + 1, y, data) != MaxY) continue;
+                    //if (GetY(x - 1, y, data) != MaxY) continue;
+                    if (GetY(x, y + 1, data) != MaxY) continue;
+                    if (GetY(x + 1, y + 1, data) != MaxY) continue;
+                    //if (GetY(x, y - 1, data) != MaxY) continue;
+                    data[x + y * 64] |= 64;
                 }
             }
 
             File.WriteAllBytes(@"..\map.bin", data);
+        }
+
+        private static byte GetY(int x, int y, byte[] map)
+        {
+            return map[(x & 63) + ((y & 63) * 64)];
         }
 
         private static void divide(int size)

@@ -1,11 +1,22 @@
-.depth
+
+.depthY
     ; Calculates the coordinate based on the given depth
     ; Y = X or Y; X = depth
     ; Populates mathc with the given calculation
-    LDA  divtableL, X
-    STA  matha
-    LDA  divtableH, X
-    STA  matha + 1
+    LDA divtableLY, X
+    STA matha
+    LDA divtableHY, X
+    STA matha + 1
+    JMP multbyy
+
+.depthX
+    ; Calculates the coordinate based on the given depth
+    ; Y = X or Y; X = depth
+    ; Populates mathc with the given calculation
+    LDA divtableLX, X
+    STA matha
+    LDA divtableHX, X
+    STA matha + 1
 
 .multbyy
     ; matha is the multiplier
@@ -109,15 +120,24 @@
 }
 
 ALIGN    64
-divmax = 40000
+divmaxx = 50000
+divmaxy = 30000
 divadd = 33
-.divtableL
+.divtableLX
     FOR n, 1, 64
-    EQUB LO(divmax / (n + divadd))
+    EQUB LO(divmaxx / (n + divadd))
     NEXT
-.divtableH
+.divtableHX
     FOR n, 1, 64
-    EQUB HI(divmax / (n + divadd))
+    EQUB HI(divmaxx / (n + divadd))
+    NEXT
+.divtableLY
+    FOR n, 1, 64
+    EQUB LO(divmaxy / (n + divadd))
+    NEXT
+.divtableHY
+    FOR n, 1, 64
+    EQUB HI(divmaxy / (n + divadd))
     NEXT
 .sintable
     FOR  n, 0, 63

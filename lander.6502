@@ -102,11 +102,22 @@ centresize = 3
     SBC #centresize + centresize * 8 ; This moves the centre of the display
     TAY
     LDX jtmp + 2
-    JSR depth
+    JSR depthX
     
     LDA mathc + 1
     CLC
     ADC #127
+    TAX
+    LDA mathc + 2
+    ADC #0
+    BEQ onscreenx
+    BMI toleft
+    LDX #255
+    BNE onscreenx
+.toleft
+    LDX #0
+.onscreenx
+    TXA
     LDY offset
     STA xlocs, Y
 
@@ -119,17 +130,37 @@ centresize = 3
     AND #63
     TAY
     LDA (mapaddr), Y
+    TAY
+    AND #192
+    LDX offset
+    STA collocs, X
+    TYA
     AND #63        ; Remove trees and whatever I want the other bit to be!
     CLC
     ADC #4
     TAY
 
     LDX jtmp + 2
-    JSR depth
+    JSR depthY
     
     LDA mathc + 1
     CLC
     ADC #40        ; This is the height
+    TAX
+    LDA mathc + 2
+    ADC #0
+    BEQ onscreeny
+    BMI above
+    LDA #23 * 8
+    BNE sety
+.above
+    LDX #0
+.onscreeny
+    TXA
+    CMP #23 * 8
+    BCC sety
+    LDA #23 * 8
+.sety
     LDY offset
     STA ylocs, Y
     INC offset     ; Go on to the next coordinate
@@ -137,11 +168,14 @@ centresize = 3
     DEC jtmp + 1
     BPL xloop
     DEC jtmp
-    BPL yloop
+    BMI alldone
+    JMP yloop
+.alldone
 }
 
 ; Loop 2 - draw the horizontal lines
 {
+    STA lastcol
     LDA #displaysize - 1
     STA jtmp
     LDA #0
@@ -167,6 +201,22 @@ centresize = 3
     LDA ylocs, Y
     STA y1
     STA ocoord + 1
+    LDA collocs, Y
+    CMP lastcol
+    BEQ colsame
+    STA lastcol
+    AND #64
+    BNE water
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    BNE colsame
+.water
+    LDA #&aa
+    STA pixelmask
+    LSR A
+    STA pixelmask + 1
+.colsame
     INC offset
     JSR plot_line
     DEC jtmp + 1
@@ -177,6 +227,9 @@ centresize = 3
 
 ; Loop 3 - draw the vertical linzes
 {
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
     LDA #displaysize - 1
     STA jtmp
     LDA #0
@@ -205,6 +258,22 @@ centresize = 3
     LDA ylocs, Y
     STA y1
     STA ocoord + 1
+    LDA collocs, Y
+    CMP lastcol
+    BEQ colsame
+    STA lastcol
+    AND #64
+    BNE water
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    BNE colsame
+.water
+    LDA #&aa
+    STA pixelmask
+    LSR A
+    STA pixelmask + 1
+.colsame
     LDA offset
     CLC
     ADC #displaysize
@@ -251,6 +320,8 @@ centresize = 3
 .xlocs
     SKIP displaysize * displaysize
 .ylocs
+    SKIP displaysize * displaysize
+.collocs
     SKIP displaysize * displaysize
 
 .mark

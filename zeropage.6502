@@ -84,6 +84,8 @@ GUARD &90
     SKIP 1
 .mapaddr    ; Pointer to the map address that we'll be reading
     SKIP 2
+.lastcol
+    SKIP 1
 
 .xspeed
     SKIP 1
