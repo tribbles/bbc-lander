@@ -11,43 +11,67 @@
     ; matha is the multiplier
     ; Y is the other multiplier
 {
+    STY mathb
     TYA
-    PHP
-    BPL  mulpos
-    EOR  #255
-    SEC
-    ADC  #0
-.mulpos
-    STA  mathb
-    LDY  #0
-    STY  mathc + 1
-.mulloop
-    LSR  mathb
-    BCC  mulskip
-    CLC
+    EOR matha + 1
+    STA maths
     TYA
-    ADC  matha
-    TAY
-    LDA  mathc + 1
-    ADC  matha + 1
-    STA  mathc + 1
-.mulskip
-    ASL  matha
-    ROL  matha + 1
-    LDA  mathb
-    BNE  mulloop
-
-    STY  mathc
-    PLP
-    BPL  mulpos2
-    LDA  #0
+    BPL mulpos1
+    EOR #255
     SEC
-    SBC  mathc
-    STA  mathc
-    LDA  #0
-    SBC  mathc + 1
-    STA  mathc + 1
+    ADC #0
+    STA mathb
+.mulpos1
+    LDA matha + 1
+    BPL mulpos2
+    LDA matha
+    EOR #255
+    SEC
+    ADC #0
+    STA matha
+    LDA matha + 1
+    EOR #255
+    ADC #0
+    STA matha + 1
 .mulpos2
+
+    LDA #0
+    STA mathc + 1
+    LDX #8
+.mull1
+    LSR mathb
+    BCC mull2
+    TAY
+    CLC
+    LDA matha
+    ADC mathc + 1
+    STA mathc + 1
+    TYA
+    ADC matha + 1
+.mull2
+    ROR A
+    ROR mathc + 1
+    ROR mathc
+    DEX
+    BNE mull1
+    STA mathc + 2
+    
+    LDA maths
+    BPL mull3
+    LDA mathc + 0
+    EOR #255
+    SEC
+    ADC #0
+    STA mathc + 0
+    LDA mathc + 1
+    EOR #255
+    ADC #0
+    STA mathc + 1
+    LDA mathc + 2
+    EOR #255
+    ADC #0
+    STA mathc + 2
+.mull3
     RTS
 }
 
@@ -84,7 +108,7 @@
     JMP multbyy
 }
 
-ALIGN    128
+ALIGN    64
 divmax = 40000
 divadd = 33
 .divtableL

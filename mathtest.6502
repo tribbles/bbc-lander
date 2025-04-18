@@ -1,0 +1,128 @@
+oswrch = &ffee
+ORG &70
+
+GUARD &90
+
+.matha
+    SKIP 2
+.mathb
+    SKIP 1
+.mathc
+    SKIP 3
+.maths
+    SKIP 1
+
+ORG &3000
+.start
+    LDA #1
+    LDX #0
+    LDY #1
+    JSR repmul
+
+    LDA #&ff
+    LDX #&ff
+    LDY #&ff
+    JSR repmul
+
+    LDA #&1
+    LDX #&ff
+    LDY #&ff
+    JSR repmul
+
+    LDA #&1
+    LDX #&0
+    LDY #&ff
+    JSR repmul
+
+    LDA #&10
+    LDX #&0
+    LDY #&ff
+    JSR repmul
+
+    LDA #&10
+    LDX #&0
+    LDY #&10
+    JSR repmul
+
+    LDA #&70
+    LDX #&0
+    LDY #&70
+    JSR repmul
+
+    LDA #&70
+    LDX #&70
+    LDY #&70
+    JSR repmul
+
+    LDA #&70
+    LDX #&01
+    LDY #&70
+    JSR repmul
+
+    LDA #&60
+    LDX #&03
+    LDY #&60
+    JSR repmul
+
+    LDA #&7e
+    LDX #&33
+    LDY #&60
+    JSR repmul
+
+    LDA #&7e
+    LDX #&33
+    LDY #&5b
+    JSR repmul
+.loop
+    JMP loop
+
+.repmul
+    STA matha
+    STX matha + 1
+    STY mathb
+
+    LDA matha + 1
+    JSR writehex
+    LDA matha
+    JSR writehex
+    LDA #'x'
+    JSR oswrch
+    LDA mathb
+    JSR writehex
+    LDY mathb
+    JSR multbyy
+    LDA #'='
+    JSR oswrch
+    LDA mathc + 2
+    JSR writehex
+    LDA mathc + 1
+    JSR writehex
+    LDA mathc
+    JSR writehex
+    LDA #10
+    JSR oswrch
+    LDA #13
+    JSR oswrch
+    RTS
+
+    INCLUDE "math.6502"
+.writehex
+    PHA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR write4
+    PLA
+    AND #15
+.write4
+    CMP #10
+    BCC less10
+    ADC #'A' - 11
+    JMP oswrch
+.less10
+    ADC #'0'
+    JMP oswrch
+
+.end
+    SAVE "MATHTST", start, end

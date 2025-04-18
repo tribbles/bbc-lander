@@ -58,7 +58,9 @@ GUARD &90
 .mathb
     SKIP 1
 .mathc
-    SKIP 2
+    SKIP 3
+.maths
+    SKIP 1
 
 .xlptr
     SKIP 2
@@ -73,9 +75,13 @@ GUARD &90
 .yoffset    ; Fractional Y offset (taken from bits 4..7 of mapy)
     SKIP 1
 .mapx       ; Fractional X offset (bits 0..7 = fraction, 8..13 = map X, 14..15 = zero)
-    SKIP 2
+    SKIP 1
+.player_x
+    SKIP 1
 .mapy       ; Fractional Y offset (bits 0..7 = fraction, 8..13 = map Y, 14..15 = zero)
-    SKIP 2
+    SKIP 1
+.player_y
+    SKIP 1
 .mapaddr    ; Pointer to the map address that we'll be reading
     SKIP 2
 
@@ -86,4 +92,6 @@ GUARD &90
 .angle
     SKIP 1
 .thrust
+    SKIP 1
+.player_height 
     SKIP 1

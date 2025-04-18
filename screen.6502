@@ -5,74 +5,74 @@ ula      = &fe20
 .set_mode
 {
 ; Set MODE 4
-    LDA  #22
-    JSR  oswrch
-    LDA  #4
-    JSR  oswrch
+    LDA #22
+    JSR oswrch
+    LDA #4
+    JSR oswrch
     
-    LDY  #15
+    LDY #15
 .crtc_loop
-    LDA  modevars, Y
-    STY  crtcreg
-    STA  crtcval
+    LDA modevars, Y
+    STY crtcreg
+    STA crtcval
     DEY
-    BPL  crtc_loop
+    BPL crtc_loop
 .end_crtc
 
-    LDA  #&88
-    STA  ula
-    LDA  #&07
+    LDA #&88
+    STA ula
+    LDA #&07
 .ula_loop
-    STA  ula + 1
-    EOR  #&87
-    STA  ula + 1
-    EOR  #&87
+    STA ula + 1
+    EOR #&87
+    STA ula + 1
+    EOR #&87
     CLC
-    ADC  #&10
-    BPL  ula_loop
+    ADC #&10
+    BPL ula_loop
     
-    LDA  #HI(screen)
-    STA  current_screen_hi
+    LDA #HI(screen)
+    STA current_screen_hi
     
-    LDX  #&4
-    JMP  set_colour
+    LDX #&4
+    JMP set_colour
 }
 
 .plot_line
 {
-    LDA  x1
-    EOR  x0
-    BEQ  plot_vline
-    LDA  y1
-    EOR  y0
-    BEQ  plot_hline
+    LDA x1
+    EOR x0
+    BEQ plot_vline
+    LDA y1
+    EOR y0
+    BEQ plot_hline
     
 .pl_restart    
-    LDA  x1
+    LDA x1
     SEC
-    SBC  x0
-    BMI  pl_dxneg
-    STA  dx       ; dx = x1 - x0
-    LDX  #0
-    LDA  y1
+    SBC x0
+    BMI pl_dxneg
+    STA dx       ; dx = x1 - x0
+    LDX #0
+    LDA y1
     SEC
-    SBC  y0
-    BPL  pl_dypos
+    SBC y0
+    BPL pl_dypos
     INX
-    EOR  #&ff
+    EOR #&ff
     CLC
-    ADC  #1
+    ADC #1
 .pl_dypos
-    STA  dy       ; dy = y1 - y0 (although if negative, it'll select a different quadrant)
+    STA dy       ; dy = y1 - y0 (although if negative, it'll select a different quadrant)
     
-    CMP  dx
-    BCC  pl_dxgtdy
+    CMP dx
+    BCC pl_dxgtdy
     INX
     INX
 .pl_dxgtdy
-    LDA  quadrant_h, X
+    LDA quadrant_h, X
     PHA
-    LDA  quadrant_l, X
+    LDA quadrant_l, X
     PHA
     RTS
     
@@ -82,231 +82,231 @@ ula      = &fe20
     EQUB LO(plq1 - 1), LO(plq2 - 1), LO(plq3 - 1), LO(plq4 - 1)
 
 .plot_vline
-    LDA  x0
-    LDX  y0
-    LDY  y1
-    JMP  vline
+    LDA x0
+    LDX y0
+    LDY y1
+    JMP vline
     
 .plot_hline
-    LDA  y0
-    LDX  x0
-    LDY  x1
-    JMP  hline
+    LDA y0
+    LDX x0
+    LDY x1
+    JMP hline
     
 .pl_dxneg
-    LDA  x1
-    LDX  x0
-    STA  x0
-    STX  x1
-    LDA  y1
-    LDX  y0
-    STX  y1
-    STA  y0
-    JMP  pl_restart
+    LDA x1
+    LDX x0
+    STA x0
+    STX x1
+    LDA y1
+    LDX y0
+    STX y1
+    STA y0
+    JMP pl_restart
 }
 
 .plq1
 {
 ; dy is +ve; dy is < dx
-    LDA  dx
-    LSR  A
-    EOR  #&ff
+    LDA dx
+    LSR A
+    EOR #&ff
     CLC
-    ADC  #1
-    STA  plerror  ; error = -(dx / 2)
-    LDA  x0
-    STA  plx      ; x = x0
-    STA  pllast
-    LDA  y0
-    STA  ply      ; y = y0
+    ADC #1
+    STA plerror  ; error = -(dx / 2)
+    LDA x0
+    STA plx      ; x = x0
+    STA pllast
+    LDA y0
+    STA ply      ; y = y0
 .plq1_loop
-    LDX  plx
-    CPX  x1
-    BEQ  plq1_done
-    LDA  plerror
+    LDX plx
+    CPX x1
+    BEQ plq1_done
+    LDA plerror
     CLC
-    ADC  dy       ; error = error + dy
-    BPL  plq1_inc
-    STA  plerror
-    INC  plx
-    JMP  plq1_loop
+    ADC dy       ; error = error + dy
+    BPL plq1_inc
+    STA plerror
+    INC plx
+    JMP plq1_loop
 
 .plq1_inc
     SEC
-    SBC  dx       ; error = error - dx
-    STA  plerror
+    SBC dx       ; error = error - dx
+    STA plerror
     
-    LDA  ply
-    LDX  pllast
-    LDY  plx
-    JSR  hline
-    INC  plx
-    LDA  plx
-    STA  pllast
-    INC  ply
-    JMP  plq1_loop
+    LDA ply
+    LDX pllast
+    LDY plx
+    JSR hline
+    INC plx
+    LDA plx
+    STA pllast
+    INC ply
+    JMP plq1_loop
     
 .plq1_done
-    LDA  ply
-    LDX  pllast
-    LDY  x1
-    JMP  hline
+    LDA ply
+    LDX pllast
+    LDY x1
+    JMP hline
 }
     
 .plq2
 {
 ; dy is -ve; dy is < dx
-    LDA  dx
-    LSR  A
-    EOR  #&ff
+    LDA dx
+    LSR A
+    EOR #&ff
     CLC
-    ADC  #1
-    STA  plerror  ; error = -(dx / 2)
-    LDA  x0
-    STA  plx      ; x = x0
-    STA  pllast
-    LDA  y0
-    STA  ply      ; y = y0
+    ADC #1
+    STA plerror  ; error = -(dx / 2)
+    LDA x0
+    STA plx      ; x = x0
+    STA pllast
+    LDA y0
+    STA ply      ; y = y0
 .plq2_loop
-    LDX  plx
-    CPX  x1
-    BEQ  plq2_done
-    LDA  plerror
+    LDX plx
+    CPX x1
+    BEQ plq2_done
+    LDA plerror
     CLC
-    ADC  dy       ; error = error + dy
-    BPL  plq2_inc
-    STA  plerror
-    INC  plx
-    JMP  plq2_loop
+    ADC dy       ; error = error + dy
+    BPL plq2_inc
+    STA plerror
+    INC plx
+    JMP plq2_loop
 
 .plq2_inc
     SEC
-    SBC  dx       ; error = error - dx
-    STA  plerror
+    SBC dx       ; error = error - dx
+    STA plerror
     
-    LDA  ply
-    LDX  pllast
-    LDY  plx
-    JSR  hline
-    INC  plx
-    LDA  plx
-    STA  pllast
-    DEC  ply
-    JMP  plq2_loop
+    LDA ply
+    LDX pllast
+    LDY plx
+    JSR hline
+    INC plx
+    LDA plx
+    STA pllast
+    DEC ply
+    JMP plq2_loop
     
 .plq2_done
-    LDA  ply
-    LDX  pllast
-    LDY  x1
-    JMP  hline
+    LDA ply
+    LDX pllast
+    LDY x1
+    JMP hline
 }
 
 .plq3
 {
 ; dy is +ve; dy > dx
-    LDA  dy
-    LSR  A
-    EOR  #&ff
+    LDA dy
+    LSR A
+    EOR #&ff
     CLC
-    ADC  #1
-    STA  plerror  ; error = -(dy / 2)
-    LDA  y0
-    STA  ply
-    STA  pllast
-    LDA  x0
-    STA  plx
+    ADC #1
+    STA plerror  ; error = -(dy / 2)
+    LDA y0
+    STA ply
+    STA pllast
+    LDA x0
+    STA plx
 .plq3_loop
-    LDX  ply
-    CPX  y1
-    BEQ  plq3_done
-    LDA  plerror
+    LDX ply
+    CPX y1
+    BEQ plq3_done
+    LDA plerror
     CLC
-    ADC  dx       ; error = error + dx
-    BPL  plq3_inc
-    STA  plerror
-    INC  ply
-    JMP  plq3_loop
+    ADC dx       ; error = error + dx
+    BPL plq3_inc
+    STA plerror
+    INC ply
+    JMP plq3_loop
     
 .plq3_inc
     SEC
-    SBC  dy       ; error = error - dy
-    STA  plerror
-    LDA  plx
-    LDX  pllast
-    LDY  ply
-    JSR  vline
-    INC  ply
-    LDA  ply
-    STA  pllast
-    INC  plx
-    JMP  plq3_loop
+    SBC dy       ; error = error - dy
+    STA plerror
+    LDA plx
+    LDX pllast
+    LDY ply
+    JSR vline
+    INC ply
+    LDA ply
+    STA pllast
+    INC plx
+    JMP plq3_loop
     
 .plq3_done
-    LDA  plx
-    LDX  pllast
-    LDY  y1
-    JMP  vline
+    LDA plx
+    LDX pllast
+    LDY y1
+    JMP vline
 }
 
 .plq4
 {
 ; dy is -ve; dy > dx
-    LDA  dy
-    LSR  A
-    EOR  #&ff
+    LDA dy
+    LSR A
+    EOR #&ff
     CLC
-    ADC  #1
-    STA  plerror  ; error = -(dy / 2)
-    LDA  y1
-    STA  ply
-    STA  pllast
-    LDA  x1
-    STA  plx
+    ADC #1
+    STA plerror  ; error = -(dy / 2)
+    LDA y1
+    STA ply
+    STA pllast
+    LDA x1
+    STA plx
 .plq4_loop
-    LDX  ply
-    CPX  y0
-    BEQ  plq4_done
-    LDA  plerror
+    LDX ply
+    CPX y0
+    BEQ plq4_done
+    LDA plerror
     CLC
-    ADC  dx       ; error = error + dx
-    BPL  plq4_inc
-    STA  plerror
-    INC  ply
-    JMP  plq4_loop
+    ADC dx       ; error = error + dx
+    BPL plq4_inc
+    STA plerror
+    INC ply
+    JMP plq4_loop
     
 .plq4_inc
     SEC
-    SBC  dy       ; error = error - dy
-    STA  plerror
-    LDA  plx
-    LDX  pllast
-    LDY  ply
-    JSR  vline
-    INC  ply
-    LDA  ply
-    STA  pllast
-    DEC  plx
-    JMP  plq4_loop
+    SBC dy       ; error = error - dy
+    STA plerror
+    LDA plx
+    LDX pllast
+    LDY ply
+    JSR vline
+    INC ply
+    LDA ply
+    STA pllast
+    DEC plx
+    JMP plq4_loop
     
 .plq4_done
-    LDA  plx
-    LDX  pllast
-    LDY  y0
-    JMP  vline
+    LDA plx
+    LDX pllast
+    LDY y0
+    JMP vline
 }
 
 .init_bits
 {
-    LDX  #7
+    LDX #7
 .initloop
-    LDA  initbp, X
-    STA  bits, X
-    LDA  initleft, X
-    STA  leftbits, X
-    LDA  initright, X
-    STA  rightbits, X
+    LDA initbp, X
+    STA bits, X
+    LDA initleft, X
+    STA leftbits, X
+    LDA initright, X
+    STA rightbits, X
     DEX
-    BPL  initloop
+    BPL initloop
     RTS
 .initbp
     EQUB 128, 64, 32, 16, 8, 4, 2, 1
@@ -322,10 +322,10 @@ ula      = &fe20
 .set_colour
 {
 ; X is colour
-    LDA  c1, X
-    STA  pixelmask
-    LDA  c2, X
-    STA  pixelmask + 1
+    LDA c1, X
+    STA pixelmask
+    LDA c2, X
+    STA pixelmask + 1
     RTS
 
 .c1
@@ -354,19 +354,19 @@ ula      = &fe20
 
 .init_screen
 {
-    LDY  #0
+    LDY #0
 .is_loop
-    LDA  screen_data, Y
-    STA  screen1, Y
-    STA  screen2, Y
-    LDA  screen_data + 256, Y
-    STA  screen1 + 256, Y
-    STA  screen2 + 256, Y
-    LDA  screen_data + 512, Y
-    STA  screen1 + 23 * 256, Y
-    STA  screen2 + 23 * 256, Y
+    LDA screen_data, Y
+    STA screen1, Y
+    STA screen2, Y
+    LDA screen_data + 256, Y
+    STA screen1 + 256, Y
+    STA screen2 + 256, Y
+    LDA screen_data + 512, Y
+    STA screen1 + 23 * 256, Y
+    STA screen2 + 23 * 256, Y
     DEY
-    BNE  is_loop
+    BNE is_loop
     RTS
 .screen_data
     INCBIN "title.bin"
@@ -375,24 +375,24 @@ ula      = &fe20
 
 .clear_bank
 {
-    LDA  #0
+    LDA #0
     TAY
-    LDX  current_screen_hi
-    CPX  #HI(screen1)
-    BEQ  clr1
+    LDX current_screen_hi
+    CPX #HI(screen1)
+    BEQ clr1
 .clr2
 FOR n, 2, 22
-    STA  screen2 + n * 256, Y
+    STA screen2 + n * 256, Y
 NEXT
     DEY
-    BNE  clr2
+    BNE clr2
     RTS
 .clr1
 FOR n, 2, 22
-    STA  screen1 + n * 256, Y
+    STA screen1 + n * 256, Y
 NEXT
     DEY
-    BNE  clr1
+    BNE clr1
     RTS
 }
 
@@ -400,18 +400,18 @@ NEXT
 {
 osbyte   = &fff4
 
-    LDA  current_screen_hi
-    EOR  #HI(screen1) EOR HI(screen2)
-    STA  current_screen_hi
+    LDA current_screen_hi
+    EOR #HI(screen1) EOR HI(screen2)
+    STA current_screen_hi
     TAY
-    LSR  A
-    LSR  A
-    LSR  A
+    LSR A
+    LSR A
+    LSR A
     EOR  #(HI(screen1) EOR HI(screen2)) >> 3
-    LDX  #12
-    STX  crtcreg
-    STA  crtcval
+    LDX #12
+    STX crtcreg
+    STA crtcval
     ;CMP  #HI(screen1)
-    LDA  #19
-    JMP  osbyte
+    LDA #19
+    JMP osbyte
 }

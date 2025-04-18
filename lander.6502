@@ -39,8 +39,8 @@ centresize = 3
 
 ; Loop 1 - calculate the X and Y coordinates of the map
 {
-    LDA  #0
-    STA  offset     ; We start off at this point
+    LDA #0
+    STA offset     ; We start off at this point
 
     LDA mapx
     LSR A
@@ -58,16 +58,15 @@ centresize = 3
     LSR A
     STA yoffset     ; Calculate the fractional Y map display
 
-    LDA  #displaysize - 1
-    STA  jtmp       ; This is the current Y coordinate
+    LDA #displaysize - 1
+    STA jtmp       ; This is the current Y coordinate
 .yloop
-    LDA  jtmp
-    ASL  A
-    ASL  A
-    ASL  A
-    ADC  yoffset    ; This is the fractional offset
-    STA  jtmp + 2
-
+    LDA jtmp
+    ASL A
+    ASL A
+    ASL A
+    ADC yoffset    ; This is the fractional offset
+    STA jtmp + 2
 
 ; Calculate the map position
     LDA mapy + 1
@@ -91,25 +90,25 @@ centresize = 3
     ADC #HI(map)
     STA mapaddr + 1
 
-    LDA  #displaysize - 1
-    STA  jtmp + 1   ; This is the current X coordinate
+    LDA #displaysize - 1
+    STA jtmp + 1   ; This is the current X coordinate
 .xloop
-    LDA  jtmp + 1
-    ASL  A
-    ASL  A
-    ASL  A
-    ADC  xoffset    ; This is the fractional offset (carry is clear; jtmp+1 is a maximum of 6)
+    LDA jtmp + 1
+    ASL A
+    ASL A
+    ASL A
+    ADC xoffset    ; This is the fractional offset (carry is clear; jtmp+1 is a maximum of 6)
     SEC
-    SBC  #centresize + centresize * 8 ; This moves the centre of the display
+    SBC #centresize + centresize * 8 ; This moves the centre of the display
     TAY
-    LDX  jtmp + 2
-    JSR  depth
+    LDX jtmp + 2
+    JSR depth
     
-    LDA  mathc + 1
+    LDA mathc + 1
     CLC
-    ADC  #127
-    LDY  offset
-    STA  xlocs, Y
+    ADC #127
+    LDY offset
+    STA xlocs, Y
 
     ; Now we add in the map X offset
     LDA mapx + 1
@@ -125,105 +124,104 @@ centresize = 3
     ADC #4
     TAY
 
-    LDX  jtmp + 2
-    JSR  depth
+    LDX jtmp + 2
+    JSR depth
     
-    LDA  mathc + 1
+    LDA mathc + 1
     CLC
-    ADC  #32        ; This is the height
-    LDY  offset
-    STA  ylocs, Y
-    INC  offset     ; Go on to the next coordinate
+    ADC #40        ; This is the height
+    LDY offset
+    STA ylocs, Y
+    INC offset     ; Go on to the next coordinate
     
-    DEC  jtmp + 1
-    BPL  xloop
-    DEC  jtmp
-    BPL  yloop
+    DEC jtmp + 1
+    BPL xloop
+    DEC jtmp
+    BPL yloop
 }
 
 ; Loop 2 - draw the horizontal lines
 {
-    LDA  #displaysize - 1
-    STA  jtmp
-    LDA  #0
-    STA  offset
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
 .xloop
-    LDA  #displaysize - 2
-    STA  jtmp + 1
-    LDY  offset
-    LDA  xlocs, Y
-    STA  ocoord
-    LDA  ylocs, Y
-    STA  ocoord + 1
-    INC  offset
+    LDA #displaysize - 2
+    STA jtmp + 1
+    LDY offset
+    LDA xlocs, Y
+    STA ocoord
+    LDA ylocs, Y
+    STA ocoord + 1
+    INC offset
 .yloop
-    LDA  ocoord
-    STA  x0
-    LDA  ocoord + 1
-    STA  y0
-    LDY  offset
-    LDA  xlocs, Y
-    STA  x1
-    STA  ocoord
-    LDA  ylocs, Y
-    STA  y1
-    STA  ocoord + 1
-    INC  offset
-    JSR  plot_line
-    DEC  jtmp + 1
-    BPL  yloop
-    DEC  jtmp
-    BPL  xloop
+    LDA ocoord
+    STA x0
+    LDA ocoord + 1
+    STA y0
+    LDY offset
+    LDA xlocs, Y
+    STA x1
+    STA ocoord
+    LDA ylocs, Y
+    STA y1
+    STA ocoord + 1
+    INC offset
+    JSR plot_line
+    DEC jtmp + 1
+    BPL yloop
+    DEC jtmp
+    BPL xloop
 }
 
-IF TRUE
 ; Loop 3 - draw the vertical linzes
 {
-    LDA  #displaysize - 1
-    STA  jtmp
-    LDA  #0
-    STA  offset
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
 .xloop
-    LDA  #displaysize - 2
-    STA  jtmp + 1
-    LDY  offset
-    LDA  xlocs, Y
-    STA  ocoord
-    LDA  ylocs, Y
-    STA  ocoord + 1
-    LDA  offset
+    LDA #displaysize - 2
+    STA jtmp + 1
+    LDY offset
+    LDA xlocs, Y
+    STA ocoord
+    LDA ylocs, Y
+    STA ocoord + 1
+    LDA offset
     CLC
-    ADC  #displaysize
-    STA  offset
+    ADC #displaysize
+    STA offset
 .yloop
-    LDA  ocoord
-    STA  x0
-    LDA  ocoord + 1
-    STA  y0
-    LDY  offset
-    LDA  xlocs, Y
-    STA  x1
-    STA  ocoord
-    LDA  ylocs, Y
-    STA  y1
-    STA  ocoord + 1
-    LDA  offset
+    LDA ocoord
+    STA x0
+    LDA ocoord + 1
+    STA y0
+    LDY offset
+    LDA xlocs, Y
+    STA x1
+    STA ocoord
+    LDA ylocs, Y
+    STA y1
+    STA ocoord + 1
+    LDA offset
     CLC
-    ADC  #displaysize
-    STA  offset
-    JSR  plot_line
-    DEC  jtmp + 1
-    BPL  yloop
-    LDA  offset
+    ADC #displaysize
+    STA offset
+    JSR plot_line
+    DEC jtmp + 1
+    BPL yloop
+    LDA offset
     SEC
-    SBC  #displaysize * displaysize - 1
-    STA  offset
-    DEC  jtmp
-    BPL  xloop
+    SBC #displaysize * displaysize - 1
+    STA offset
+    DEC jtmp
+    BPL xloop
 }
-ENDIF
-    JSR  swap_banks
-    JSR  clear_bank
+
+    JSR swap_banks
+    JSR clear_bank
 
     LDA angle
     LDY thrust
@@ -248,7 +246,7 @@ ENDIF
     STA mapx + 1
     INC angle
 
-    JMP  endforever
+    JMP endforever
     
 .xlocs
     SKIP displaysize * displaysize
@@ -256,23 +254,23 @@ ENDIF
     SKIP displaysize * displaysize
 
 .mark
-    LDX  x1
-    LDY  y1
+    LDX x1
+    LDY y1
     DEX
     DEX
-    JSR  pixelp
-    LDX  x1
+    JSR pixelp
+    LDX x1
     INX
     INX
-    JSR  pixelp
-    LDX  x1
+    JSR pixelp
+    LDX x1
     INY
     INY
-    JSR  pixelp
-    LDY  y1
+    JSR pixelp
+    LDY y1
     DEY
     DEY
-    JMP  pixelp
+    JMP pixelp
 
     INCLUDE  "screen.6502"
     INCLUDE  "draw.6502"
