@@ -3,6 +3,4 @@
 .vs/
 bin/
 obj/
-*.pdb
-*.exe.config
-*.exe
+LanderCode/net8.0

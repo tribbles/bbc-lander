@@ -60,10 +60,10 @@ namespace MapMaker
                         continue;
                     }
                     if (GetY(x + 1, y, data) != MaxY) continue;
-                    //if (GetY(x - 1, y, data) != MaxY) continue;
+                    if (GetY(x - 1, y, data) != MaxY) continue;
+                    if (GetY(x, y - 1, data) != MaxY) continue;
+                    // if (GetY(x + 1, y - 1, data) != MaxY) continue;
                     if (GetY(x, y + 1, data) != MaxY) continue;
-                    if (GetY(x + 1, y + 1, data) != MaxY) continue;
-                    //if (GetY(x, y - 1, data) != MaxY) continue;
                     data[x + y * 64] |= 64;
                 }
             }
@@ -127,6 +127,6 @@ namespace MapMaker
         }
 
         private static double[,] map;
-        private static Random r = new Random();
+        private static Random r = new Random(9876);
     }
 }

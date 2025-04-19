@@ -17,24 +17,27 @@ maxypos = 24 * 8
     ORG &2000
 
 .start
-    JSR  set_mode
-    JSR  init_bits
-    JSR  init_screen
-    JSR  clear_bank
-    JSR  swap_banks
-    JSR  clear_bank
-    
-    LDX  #4
-    JSR  set_colour
-    LDA  #0
-    STA  xoffset
-    STA  yoffset
+    JSR set_mode
+    JSR init_bits
+    JSR init_screen
+    JSR clear_bank
+    JSR swap_banks
+    JSR clear_bank
 
-    LDA #96
+    LDX #4
+    JSR set_colour
+    LDA #0
+    STA xoffset
+    STA yoffset
+
+    LDA #64
     STA thrust
 
-    LDA #32
+    LDA #16
     STA angle
+    LDA #32
+    STA player_x
+    STA player_y
     
 .endforever
 
@@ -89,13 +92,13 @@ maxypos = 24 * 8
     ASL A
     ASL A
     ASL A
-    STA mapaddr
+    STA mapread + 1 ; A little bit of self-modifying code...
     TXA
     LSR A
     LSR A
     CLC
     ADC #HI(map)
-    STA mapaddr + 1
+    STA mapread + 2 ; And a bit more...
 
     LDA #displaysize - 1
     STA jtmp + 1   ; This is the current X coordinate
@@ -136,7 +139,8 @@ maxypos = 24 * 8
     ADC #centresize ; Centre it
     AND #63
     TAY
-    LDA (mapaddr), Y
+.mapread
+    LDA map, Y
     TAY
     AND #192
     LDX offset
