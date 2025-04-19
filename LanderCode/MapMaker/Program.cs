@@ -51,7 +51,14 @@ namespace MapMaker
             {
                 for (int y = 0; y < 64; y++)
                 {
-                    if (GetY(x, y, data) != MaxY) continue;
+                    if (GetY(x, y, data) != MaxY)
+                    {
+                        if ((r.Next() & 31) == 0)
+                        {
+                            data[x + y * 64] |= 128;
+                        }
+                        continue;
+                    }
                     if (GetY(x + 1, y, data) != MaxY) continue;
                     //if (GetY(x - 1, y, data) != MaxY) continue;
                     if (GetY(x, y + 1, data) != MaxY) continue;

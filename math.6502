@@ -141,5 +141,9 @@ divadd = 33
     NEXT
 .sintable
     FOR  n, 0, 63
-    EQUB SIN(RAD(n * 90 / 64)) * 64
+    EQUB SIN(RAD(n * 90 / 64)) * 255
+    NEXT
+.theight
+    FOR n, 1, 64
+    EQUB LO(400 / (n + divadd))
     NEXT

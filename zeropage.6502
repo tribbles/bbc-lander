@@ -69,7 +69,16 @@ GUARD &90
 .offset
     SKIP 1
 .ocoord
-    SKIP 2
+.treelx
+    SKIP 1
+.treerx
+    SKIP 1
+.treecx
+    SKIP 1
+.treey
+    SKIP 1
+.treeh
+    SKIP 1
 .xoffset    ; Fractional X offset (taken from bits 4..7 of mapx)
     SKIP 1
 .yoffset    ; Fractional Y offset (taken from bits 4..7 of mapy)

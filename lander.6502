@@ -5,6 +5,7 @@ screen2  = &6800
 
 displaysize = 7
 centresize = 3
+maxypos = 24 * 8
 
 ;map      = &1000 ; 64x64 map
 
@@ -29,7 +30,7 @@ centresize = 3
     STA  xoffset
     STA  yoffset
 
-    LDA #2
+    LDA #96
     STA thrust
 
     LDA #32
@@ -48,7 +49,7 @@ centresize = 3
     LSR A
     LSR A
     LSR A
-    STA xoffset     ; Calculate the fractional X map display
+    STA xoffset     ; Calculate the fractional X map display (0..7)
 
     LDA mapy
     LSR A
@@ -56,17 +57,23 @@ centresize = 3
     LSR A
     LSR A
     LSR A
-    STA yoffset     ; Calculate the fractional Y map display
+    STA yoffset     ; Calculate the fractional Y map display (0..7)
 
     LDA #displaysize - 1
-    STA jtmp       ; This is the current Y coordinate
+    STA jtmp        ; This is the current Y coordinate
 .yloop
-    LDA jtmp
+    LDA jtmp        ; (0..<size>)
     ASL A
     ASL A
-    ASL A
-    ADC yoffset    ; This is the fractional offset
+    ASL A           ; (0..<size>*8)
+    ORA yoffset     ; Add in the fractional offset
     STA jtmp + 2
+; Get the tree height
+    TAY
+    LDA theight, Y
+    LDY jtmp
+    LSR A
+    STA treeheight, Y
 
 ; Calculate the map position
     LDA mapy + 1
@@ -151,15 +158,15 @@ centresize = 3
     ADC #0
     BEQ onscreeny
     BMI above
-    LDA #23 * 8
+    LDA #maxypos
     BNE sety
 .above
     LDX #0
 .onscreeny
     TXA
-    CMP #23 * 8
+    CMP #maxypos
     BCC sety
-    LDA #23 * 8
+    LDA #maxypos
 .sety
     LDY offset
     STA ylocs, Y
@@ -172,6 +179,11 @@ centresize = 3
     JMP yloop
 .alldone
 }
+
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    STA lastcol
 
 ; Loop 2 - draw the horizontal lines
 {
@@ -202,10 +214,11 @@ centresize = 3
     STA y1
     STA ocoord + 1
     LDA collocs, Y
+    AND #64
     CMP lastcol
     BEQ colsame
     STA lastcol
-    AND #64
+    CMP #0
     BNE water
     LDA #255
     STA pixelmask
@@ -227,9 +240,6 @@ centresize = 3
 
 ; Loop 3 - draw the vertical linzes
 {
-    LDA #255
-    STA pixelmask
-    STA pixelmask + 1
     LDA #displaysize - 1
     STA jtmp
     LDA #0
@@ -259,10 +269,11 @@ centresize = 3
     STA y1
     STA ocoord + 1
     LDA collocs, Y
+    AND #64
     CMP lastcol
     BEQ colsame
     STA lastcol
-    AND #64
+    CMP #0
     BNE water
     LDA #255
     STA pixelmask
@@ -289,6 +300,98 @@ centresize = 3
     BPL xloop
 }
 
+; Loop 4 - trees
+{
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
+.xloop
+    LDA #displaysize - 1
+    STA jtmp + 1
+.yloop
+    LDY offset
+    LDA collocs, Y
+    BPL notree
+
+    LDA xlocs, Y
+    STA x1
+    STA x0
+    STA treecx
+    LDA ylocs, Y
+    STA y1
+    STA treey
+
+; Plot the trunk
+    LDX jtmp
+    LDA treeheight, X
+    STA treeh
+    LDA y1
+    SEC
+    SBC treeh
+.treeokay
+    STA y0
+    STA treey
+    JSR plot_line
+
+; Plot the base of the triangle
+    LDA treey
+    STA y1
+    LDA treecx
+    SEC
+    SBC treeh
+    BCS left
+    LDA #0
+.left
+    STA x0
+    STA ocoord
+    LDA treecx
+    CLC
+    ADC treeh
+    BCC right
+    LDA #255
+.right
+    STA x1
+    STA treerx
+    JSR plot_line
+
+; Plot the left of the triangle
+    LDA treelx
+    STA x1
+    LDA treecx
+    STA x0
+    LDA treey
+    STA y1
+    SEC
+    SBC treeh
+    SBC treeh
+    STA y0
+    STA treeh       ; Don't need the height any more
+    JSR plot_line
+; Plot the right of the triangle
+    LDA treecx
+    STA x0
+    LDA treerx
+    STA x1
+    LDA treey
+    STA y1
+    LDA treeh
+    STA y0
+    JSR plot_line
+.notree
+    INC offset
+    DEC jtmp + 1
+    BPL yloop
+    DEC jtmp
+    BMI done
+    JMP xloop
+.done
+}
+
     JSR swap_banks
     JSR clear_bank
 
@@ -297,10 +400,10 @@ centresize = 3
     JSR sin
     LDA mapy
     CLC
-    ADC mathc
+    ADC mathc + 1
     STA mapy
     LDA mapy + 1
-    ADC mathc + 1
+    ADC mathc + 2
     STA mapy + 1
 
     LDA angle
@@ -308,10 +411,10 @@ centresize = 3
     JSR cos
     LDA mapx
     CLC
-    ADC mathc
+    ADC mathc + 1
     STA mapx
     LDA mapx + 1
-    ADC mathc + 1
+    ADC mathc + 2
     STA mapx + 1
     INC angle
 
@@ -323,6 +426,11 @@ centresize = 3
     SKIP displaysize * displaysize
 .collocs
     SKIP displaysize * displaysize
+.treeheight
+    SKIP displaysize
+
+.plot_tree
+    RTS
 
 .mark
     LDX x1
