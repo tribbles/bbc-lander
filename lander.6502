@@ -30,7 +30,7 @@ maxypos = 24 * 8
     STA xoffset
     STA yoffset
 
-    LDA #64
+    LDA #0
     STA thrust
 
     LDA #16
@@ -38,6 +38,9 @@ maxypos = 24 * 8
     LDA #32
     STA player_x
     STA player_y
+    LDA #127
+    STA mapx
+    STA mapy
     
 .endforever
 
