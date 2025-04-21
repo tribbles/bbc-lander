@@ -23,6 +23,7 @@ maxypos = 24 * 8
     JSR clear_bank
     JSR swap_banks
     JSR clear_bank
+    JSR fixship
 
     LDX #4
     JSR set_colour
@@ -30,11 +31,13 @@ maxypos = 24 * 8
     STA xoffset
     STA yoffset
 
-    LDA #0
+    LDA #64
     STA thrust
 
     LDA #16
-    STA angle
+    STA yangle
+    LDA #48
+    STA zangle
     LDA #32
     STA player_x
     STA player_y
@@ -398,11 +401,12 @@ maxypos = 24 * 8
     JMP xloop
 .done
 }
+    JSR plot_ship
 
     JSR swap_banks
     JSR clear_bank
 
-    LDA angle
+    LDA yangle
     LDY thrust
     JSR sin
     LDA mapy
@@ -413,7 +417,7 @@ maxypos = 24 * 8
     ADC mathc + 2
     STA mapy + 1
 
-    LDA angle
+    LDA yangle
     LDY thrust
     JSR cos
     LDA mapx
@@ -423,7 +427,9 @@ maxypos = 24 * 8
     LDA mapx + 1
     ADC mathc + 2
     STA mapx + 1
-    INC angle
+    INC yangle
+    INC yangle
+    INC yangle
 
     JMP endforever
     
@@ -458,14 +464,15 @@ maxypos = 24 * 8
     DEY
     JMP pixelp
 
-    INCLUDE  "screen.6502"
-    INCLUDE  "draw.6502"
-    INCLUDE  "math.6502"
+    INCLUDE "screen.6502"
+    INCLUDE "draw.6502"
+    INCLUDE "math.6502"
+    INCLUDE "ship.6502"
 
     ALIGN 256
 .map
-    INCBIN   "map.bin"
+    INCBIN  "map.bin"
     EQUB 0
 .end
 
-    SAVE "Lander", start, end
+    SAVE    "Lander", start, end

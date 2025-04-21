@@ -407,11 +407,11 @@ osbyte   = &fff4
     LSR A
     LSR A
     LSR A
-    EOR  #(HI(screen1) EOR HI(screen2)) >> 3
+    EOR #(HI(screen1) EOR HI(screen2)) >> 3
     LDX #12
     STX crtcreg
     STA crtcval
-    ;CMP  #HI(screen1)
+    ;CMP #HI(screen1)
     LDA #19
     JMP osbyte
 }

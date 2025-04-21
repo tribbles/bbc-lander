@@ -1,0 +1,109 @@
+.shipdata
+    INCBIN  "shipdata.bin"
+
+.plot_ship
+{
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+; 16 y angles
+; 8 z angles
+    LDA yangle      ; Runs from 0 to 255
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA jtmp
+    LDA zangle      ; Runs from 0 to 63
+    ASL A
+    AND #&70
+    ORA jtmp
+    ASL A
+    TAX
+    LDA shipdata, X
+    STA jtmp
+    LDA shipdata + 1, X
+    STA jtmp + 1   ; jtmp is pointing to the actual address of the ship data
+    LDY #0
+    LDA (jtmp), Y  ; A is the number of vertices
+    STA mathc
+    SEC
+    ADC jtmp
+    STA matha
+    LDA jtmp + 1
+    ADC #0
+    STA matha + 1
+.vertexloop
+    LDY mathc
+    LDA (jtmp), Y
+    TAX
+    AND #15
+    STA mathb
+
+    TXA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    TAY
+    LDA (matha), Y
+    TAX
+    AND #15
+    ASL A
+    ;CLC
+    ADC #112
+    STA x0
+    TXA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    ASL A
+    ;CLC
+    ADC #32
+    STA y0
+    
+    LDY mathb
+    LDA (matha), Y
+    TAX
+    AND #15
+    ASL A
+    ;CLC
+    ADC #112
+    STA x1
+    TXA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    ASL A
+    ;CLC
+    ADC #32
+    STA y1
+    JSR plot_line
+
+    DEC mathc
+    BNE vertexloop
+    RTS
+}
+
+
+.fixship
+{
+    LDX #16*8
+    LDY #0
+.fixshiploop
+    LDA shipdata, Y
+    CLC
+    ADC #LO(shipdata)
+    STA shipdata, Y
+    LDA shipdata + 1, Y
+    ADC #HI(shipdata)
+    STA shipdata + 1, Y
+    INY
+    INY
+    DEX
+    BNE fixshiploop
+    RTS
+}
+

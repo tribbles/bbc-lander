@@ -9,7 +9,7 @@ namespace ShipMaker
 {
     internal class ShipData
     {
-        public Bitmap DrawShip(int rotX, int rotZ)
+        public Bitmap DrawShip(int rotY, int rotZ)
         {
             var bitmap = new Bitmap(ImageSize, ImageSize, PixelFormat.Format24bppRgb);
             /*var pal = bitmap.Palette;
@@ -17,7 +17,7 @@ namespace ShipMaker
             pal.Entries[1] = Color.FromArgb(255, 255, 255);
             bitmap.Palette = pal;*/
 
-            var points3D = RotateShip(rotX, rotZ);
+            var points3D = RotateShip(rotY, rotZ);
             var points2D = To2D(points3D);
 
             List<int[]> vertices = new List<int[]>();

@@ -11,6 +11,24 @@ GUARD &90
     SKIP 3
 .maths
     SKIP 1
+.zangle
+    SKIP 1
+.yangle
+    SKIP 1
+.jtmp
+    SKIP 2
+.pixelmask
+    SKIP 2
+.x0
+    SKIP 1
+.y0
+    SKIP 1
+.x1
+    SKIP 1
+.y1
+    SKIP 1
+.xlptr
+    SKIP 2
 
 ORG &3000
 .start
@@ -70,21 +88,108 @@ ORG &3000
     JSR repmul
 
     LDA #&7e
-    LDX #&33
+    LDX #&53
     LDY #&5b
     JSR repmul
+
+    LDA #HI(shipdata)
+    JSR writehex
+    LDA #LO(shipdata)
+    JSR writehex
+    JSR space
+
+    LDA shipdata + 1
+    JSR writehex
+    LDA shipdata
+    JSR writehex
+    JSR space
+
+    JSR fixship
+
+    LDA shipdata + 1
+    JSR writehex
+    LDA shipdata
+    JSR writehex
+    JSR space
+    LDA shipdata + 3
+    JSR writehex
+    LDA shipdata + 2
+    JSR endhex
+
+    LDA #0
+    STA zangle
+    STA yangle
+    JSR repship
+
+    LDA #16
+    STA yangle
+    JSR repship
+
+    LDA #32
+    STA yangle
+    JSR repship
+
 .loop
     JMP loop
+
+.repship
+    JSR plot_ship
+    PHA
+    LDA yangle
+    JSR writehex
+    JSR comma
+    LDA zangle
+    JSR writehex
+    JSR space
+    PLA
+    JSR writehex
+    JSR comma
+    LDA mathb
+    JSR writehex
+
+    JSR space
+
+    LDX #xlptr
+    JSR writehex4
+
+    JSR comma
+
+    LDX #jtmp
+    JSR writehex4
+
+    JSR space
+
+    LDX #matha
+    JSR writehex4
+    JMP endl
+
+.space
+    LDA #' '
+    JMP oswrch
+.comma
+    LDA #','
+    JMP oswrch
+
+.plot_line
+    LDA x0
+    JSR writehex
+    JSR comma
+    LDA y0
+    JSR writehex
+    JSR space
+    LDA x1
+    JSR writehex
+    JSR comma
+    LDA y1
+    JMP endhex
 
 .repmul
     STA matha
     STX matha + 1
     STY mathb
 
-    LDA matha + 1
-    JSR writehex
-    LDA matha
-    JSR writehex
+    LDX #matha
+    JSR writehex4
     LDA #'x'
     JSR oswrch
     LDA mathb
@@ -93,19 +198,23 @@ ORG &3000
     JSR multbyy
     LDA #'='
     JSR oswrch
-    LDA mathc + 2
-    JSR writehex
-    LDA mathc + 1
-    JSR writehex
+    LDX #mathc + 1
+    JSR writehex4
     LDA mathc
+.endhex
     JSR writehex
+.endl
     LDA #10
     JSR oswrch
     LDA #13
-    JSR oswrch
-    RTS
+    JMP oswrch
 
     INCLUDE "math.6502"
+
+.writehex4
+    LDA 1, X
+    JSR writehex
+    LDA 0, X
 .writehex
     PHA
     LSR A
@@ -124,5 +233,9 @@ ORG &3000
     ADC #'0'
     JMP oswrch
 
+    ALIGN 64
+    INCLUDE "ship.6502"
+
 .end
+    SKIP 0
     SAVE "MATHTST", start, end

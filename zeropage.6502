@@ -100,7 +100,9 @@ GUARD &90
     SKIP 1
 .yspeed
     SKIP 1
-.angle
+.yangle
+    SKIP 1
+.zangle
     SKIP 1
 .thrust
     SKIP 1

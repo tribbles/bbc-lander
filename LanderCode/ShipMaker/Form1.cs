@@ -50,7 +50,7 @@ namespace ShipMaker
                 {
                     for (int y = 0; y < YSteps; y++)
                     {
-                        var bitmap = _shipData.DrawShip(z * 360 / ZSteps, y * 90 / YSteps);
+                        var bitmap = _shipData.DrawShip(y * 360 / YSteps, z * 90 / (ZSteps -1));
                         bitmap?.Dispose();
                     }
                 }
@@ -105,7 +105,7 @@ namespace ShipMaker
             {
                 _tempData[byteOffset++] = (byte)(ToCoordinate(xPoints[i]) | (ToCoordinate(yPoints[i]) << 4));
             }
-            _tempData[0] = (byte)((xPoints.Count << 4) | vertices.Count);
+            _tempData[0] = (byte)(vertices.Count + 0);
             byte[] actualData = new byte[byteOffset];
             Array.Copy(_tempData, actualData, byteOffset);
             return actualData;
