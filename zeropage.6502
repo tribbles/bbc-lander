@@ -87,13 +87,21 @@ GUARD &90
     SKIP 1
 .player_x
     SKIP 1
-.mapy       ; Fractional Y offset (bits 0..7 = fraction, 8..13 = map Y, 14..15 = zero)
+.mapz       ; Fractional Y offset (bits 0..7 = fraction, 8..13 = map Y, 14..15 = zero)
+    SKIP 1
+.player_z
+    SKIP 1
+.heighty
     SKIP 1
 .player_y
     SKIP 1
 .mapaddr    ; Pointer to the map address that we'll be reading
     SKIP 2
 .lastcol
+    SKIP 1
+.spiny
+    SKIP 1
+.spinz
     SKIP 1
 
 .xspeed
@@ -104,7 +112,11 @@ GUARD &90
     SKIP 1
 .zangle
     SKIP 1
-.thrust
+.xthrust
+    SKIP 1
+.ythrust
+    SKIP 1
+.zthrust
     SKIP 1
 .player_height 
     SKIP 1

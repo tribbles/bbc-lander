@@ -86,6 +86,7 @@
     RTS
 }
 
+IF FALSE
     ; Calculates the cosine of A (0..255), multiplied by Y
 .cos
 {
@@ -118,6 +119,22 @@
     STA matha + 1
     JMP multbyy
 }
+ENDIF
+
+.sincos
+; Gets the sin (in X) and cosine (in Y) on A (0..255)
+    LSR A
+    LSR A
+    TAX
+    CLC
+    ADC #16
+    AND #63
+    TAY
+    LDA sincostable, X
+    TAX
+    LDA sincostable, Y
+    TAY
+    RTS
 
 ALIGN    64
 divmaxx = 50000
@@ -139,11 +156,18 @@ divadd = 33
     FOR n, 1, 64
     EQUB HI(divmaxy / (n + divadd))
     NEXT
+IF FALSE
 .sintable
     FOR  n, 0, 63
     EQUB SIN(RAD(n * 90 / 64)) * 255
+    NEXT
+ENDIF
+.sincostable
+    FOR n, 0, 63
+    EQUB SIN(RAD(n * 360 / 64)) * 16
     NEXT
 .theight
     FOR n, 1, 64
     EQUB LO(400 / (n + divadd))
     NEXT
+

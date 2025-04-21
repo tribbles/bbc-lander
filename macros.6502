@@ -1,0 +1,41 @@
+MACRO THRUSTDEC addr
+; Reduces the thrust value
+    LDA addr
+    BEQ noshrink
+    BMI incshrink
+    DEC addr
+    BNE noshrink
+.incshrink
+    INC addr
+.noshrink
+ENDMACRO
+
+MACRO THRUSTADD addr
+; X and Y are preserved, but EQ and Z must be set
+    BEQ noadd
+    BMI negadd
+    CLC
+    LSR A
+    LSR A
+    ADC addr
+    CMP #64
+    BCC novflow
+    LDA #63
+.novflow
+    STA addr
+    BPL noadd
+.negadd
+    SEC
+    ROR A
+    SEC
+    ROR A
+    CLC
+    ADC addr
+    CMP #193
+    BCS nunflow
+    LDA #193
+.nunflow
+    STA addr
+.noadd
+ENDMACRO
+

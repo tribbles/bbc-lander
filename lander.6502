@@ -1,22 +1,28 @@
-oswrch   = &ffee
-screen   = &6800
-screen1  = &5000
-screen2  = &6800
+oswrch      = &ffee
+oscli       = &fff7
+osbyte      = &fff4
+screen      = &6800
+screen1     = &5000
+screen2     = &6800
 
 displaysize = 7
-centresize = 3
-maxypos = 24 * 8
+centresize  = 3
+maxypos     = 24 * 8
 
 ;map      = &1000 ; 64x64 map
 
     GUARD    screen1
 ;GUARD    map
 
-    INCLUDE   "zeropage.6502"
+    INCLUDE "zeropage.6502"
+    INCLUDE "macros.6502"
 
     ORG &2000
 
 .start
+    LDX #LO(tape)
+    LDY #HI(tape)
+    JSR oscli
     JSR set_mode
     JSR init_bits
     JSR init_screen
@@ -31,19 +37,20 @@ maxypos = 24 * 8
     STA xoffset
     STA yoffset
 
-    LDA #64
-    STA thrust
-
-    LDA #16
+    STA xthrust
+    STA ythrust
+    STA zthrust
     STA yangle
-    LDA #48
     STA zangle
+    STA spiny
+    STA spinz
+
     LDA #32
     STA player_x
-    STA player_y
+    STA player_z
     LDA #127
     STA mapx
-    STA mapy
+    STA mapz
     
 .endforever
 
@@ -60,17 +67,17 @@ maxypos = 24 * 8
     LSR A
     STA xoffset     ; Calculate the fractional X map display (0..7)
 
-    LDA mapy
+    LDA mapz
     LSR A
     LSR A
     LSR A
     LSR A
     LSR A
-    STA yoffset     ; Calculate the fractional Y map display (0..7)
+    STA yoffset     ; Calculate the fractional Z map display (0..7)
 
     LDA #displaysize - 1
-    STA jtmp        ; This is the current Y coordinate
-.yloop
+    STA jtmp        ; This is the current Z coordinate
+.zloop
     LDA jtmp        ; (0..<size>)
     ASL A
     ASL A
@@ -85,11 +92,11 @@ maxypos = 24 * 8
     STA treeheight, Y
 
 ; Calculate the map position
-    LDA mapy + 1
+    LDA mapz + 1
     SEC
     SBC jtmp
     CLC
-    ADC #centresize ; Map centre Y
+    ADC #centresize ; Map centre Z
     AND #63
     TAX
     ASL A
@@ -186,7 +193,7 @@ maxypos = 24 * 8
     BPL xloop
     DEC jtmp
     BMI alldone
-    JMP yloop
+    JMP zloop
 .alldone
 }
 
@@ -211,7 +218,7 @@ maxypos = 24 * 8
     LDA ylocs, Y
     STA ocoord + 1
     INC offset
-.yloop
+.zloop
     LDA ocoord
     STA x0
     LDA ocoord + 1
@@ -243,7 +250,7 @@ maxypos = 24 * 8
     INC offset
     JSR plot_line
     DEC jtmp + 1
-    BPL yloop
+    BPL zloop
     DEC jtmp
     BPL xloop
 }
@@ -266,7 +273,7 @@ maxypos = 24 * 8
     CLC
     ADC #displaysize
     STA offset
-.yloop
+.zloop
     LDA ocoord
     STA x0
     LDA ocoord + 1
@@ -301,7 +308,7 @@ maxypos = 24 * 8
     STA offset
     JSR plot_line
     DEC jtmp + 1
-    BPL yloop
+    BPL zloop
     LDA offset
     SEC
     SBC #displaysize * displaysize - 1
@@ -323,7 +330,7 @@ maxypos = 24 * 8
 .xloop
     LDA #displaysize - 1
     STA jtmp + 1
-.yloop
+.zloop
     LDY offset
     LDA collocs, Y
     BPL notree
@@ -395,7 +402,7 @@ maxypos = 24 * 8
 .notree
     INC offset
     DEC jtmp + 1
-    BPL yloop
+    BPL zloop
     DEC jtmp
     BMI done
     JMP xloop
@@ -406,30 +413,180 @@ maxypos = 24 * 8
     JSR swap_banks
     JSR clear_bank
 
-    LDA yangle
-    LDY thrust
-    JSR sin
-    LDA mapy
-    CLC
-    ADC mathc + 1
-    STA mapy
-    LDA mapy + 1
-    ADC mathc + 2
-    STA mapy + 1
+{
+    LDA #&81
+    LDY #&ff
+    LDX #&9e        ; Z
+    JSR osbyte
+    BCC notleft
+    INC spiny
+    INC spiny
+    LDA spiny
+    CMP #16
+    BCC notleft
+    LDA #15
+    STA spiny
+.notleft
 
+    LDA #&81
+    LDY #&ff
+    LDX #&bd        ; X
+    JSR osbyte
+    BCC notright
+    DEC spiny
+    DEC spiny
+    LDA spiny
+    CMP #&f1
+    BCS notright
+    LDA #&f1
+    STA spiny
+.notright
+
+    LDA spiny
+    BEQ spinzero
+    BMI negspin
+    DEC spiny
+    BPL spinzero
+.negspin
+    INC spiny
+.spinzero
     LDA yangle
-    LDY thrust
-    JSR cos
-    LDA mapx
     CLC
-    ADC mathc + 1
+    ADC spiny
+    STA yangle
+}
+
+{
+    LDA #&81
+    LDY #&ff
+    LDX #&9a        ; M
+    JSR osbyte
+    BCC notleft
+    INC spinz
+    INC spinz
+    LDA spinz
+    CMP #16
+    BCC notleft
+    LDA #15
+    STA spinz
+.notleft
+
+    LDA #&81
+    LDY #&ff
+    LDX #&b9        ; K
+    JSR osbyte
+    BCC notright
+    DEC spinz
+    DEC spinz
+    LDA spinz
+    CMP #&f1
+    BCS notright
+    LDA #&f1
+    STA spinz
+.notright
+
+    LDA spinz
+    BEQ spinzero
+    BMI negspin
+    DEC spinz
+    BPL spinzero
+.negspin
+    INC spinz
+.spinzero
+    LDA zangle
+    CLC
+    ADC spinz
+    BPL limitz0
+    LDA #0
+.limitz0
+    CMP #63
+    BCC limitz1
+    LDA #63
+.limitz1
+    STA zangle
+}
+
+{
+    LDA #&81
+    LDX #&ff
+    LDY #&ff
+    JSR osbyte
+    BCC noshift
+    LDA yangle
+    JSR sincos
+    TYA
+    THRUSTADD xthrust
+    TXA
+    THRUSTADD zthrust
+.noshift
+    THRUSTDEC xthrust
+    THRUSTDEC ythrust
+    THRUSTDEC zthrust
+}
+
+{
+    LDA xthrust
+    BEQ noxmove
+    BMI negxmove
+    CLC
+    ADC mapx
     STA mapx
-    LDA mapx + 1
-    ADC mathc + 2
-    STA mapx + 1
-    INC yangle
-    INC yangle
-    INC yangle
+    LDA player_x
+    ADC #0
+    AND #63
+    STA player_x
+    BPL noxmove
+.negxmove
+    CLC
+    ADC mapx
+    STA player_x
+    LDA player_x
+    SBC #0
+    STA player_x
+.noxmove
+}
+{
+    LDA zthrust
+    BEQ nozmove
+    BMI negzmove
+    CLC
+    ADC mapz
+    STA mapz
+    LDA player_z
+    ADC #0
+    AND #63
+    STA player_z
+    BPL nozmove
+.negzmove
+    CLC
+    ADC mapz
+    STA player_z
+    LDA player_z
+    SBC #0
+    STA player_z
+.nozmove
+}
+{
+    LDA ythrust
+    BEQ noymove
+    BMI negymove
+    CLC
+    ADC heighty
+    STA heighty
+    LDA player_y
+    ADC #0
+    AND #63
+    STA player_y
+    BPL noymove
+.negymove
+    CLC
+    ADC heighty
+    STA player_y
+    LDA player_y
+    SBC #0
+    STA player_y
+.noymove
+}
 
     JMP endforever
     
@@ -463,6 +620,9 @@ maxypos = 24 * 8
     DEY
     DEY
     JMP pixelp
+
+.tape
+    EQUS "TAPE", 0
 
     INCLUDE "screen.6502"
     INCLUDE "draw.6502"
