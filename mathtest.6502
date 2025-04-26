@@ -30,6 +30,8 @@ GUARD &90
 .xlptr
     SKIP 2
 
+    INCLUDE "macros.6502"
+
 ORG &3000
 .start
     LDA #1
@@ -129,8 +131,76 @@ ORG &3000
     STA yangle
     JSR repship
 
+    LDA #0
+    JSR repsc
+    LDA #10
+    JSR repsc
+    LDA #16
+    JSR repsc
+    LDA #32
+    JSR repsc
+    LDA #48
+    JSR repsc
+    LDA #64
+    JSR repsc
+    LDA #96
+    JSR repsc
+    LDA #128
+    JSR repsc
+    LDA #160
+    JSR repsc
+    LDA #192
+    JSR repsc
+    LDA #208
+    JSR repsc
+
+    LDA #0
+    STA matha
+    STA matha + 1
+    LDA #0
+    JSR repthadd
+    LDA #32
+    JSR repthadd
+    LDA #32
+    JSR repthadd
+    LDA #LO(-32)
+    JSR repthadd
+    LDA #LO(-32)
+    JSR repthadd
+    LDA #LO(-32)
+    JSR repthadd
+    LDA #LO(-32)
+    JSR repthadd
+
 .loop
     JMP loop
+
+.repthadd
+    TAX
+    JSR writehex
+    LDA #'+'
+    JSR oswrch
+    LDA matha
+    JSR writehex
+    LDA #'='
+    JSR oswrch
+    TXA
+    THRUSTADD matha
+    LDA matha 
+    JMP endhex
+
+.repsc
+    PHA
+    JSR writehex
+    LDA #'='
+    JSR oswrch
+    PLA
+    JSR sincos
+    TXA
+    JSR writehex
+    JSR comma
+    TYA
+    JMP endhex
 
 .repship
     JSR plot_ship

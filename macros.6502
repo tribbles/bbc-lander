@@ -4,36 +4,35 @@ MACRO THRUSTDEC addr
     BEQ noshrink
     BMI incshrink
     DEC addr
-    BNE noshrink
+    BPL noshrink
 .incshrink
     INC addr
 .noshrink
 ENDMACRO
 
 MACRO THRUSTADD addr
-; X and Y are preserved, but EQ and Z must be set
+; X and Y are preserved, but N and Z must be set
     BEQ noadd
     BMI negadd
+    LSR A
     CLC
-    LSR A
-    LSR A
     ADC addr
-    CMP #64
+    BMI nunflow
+    CMP #95
     BCC novflow
-    LDA #63
+    LDA #95
 .novflow
     STA addr
-    BPL noadd
+    JMP noadd
 .negadd
-    SEC
-    ROR A
-    SEC
-    ROR A
+    LSR A
+    ORA #128
     CLC
     ADC addr
-    CMP #193
+    BPL nunflow
+    CMP #LO(-95)
     BCS nunflow
-    LDA #193
+    LDA #LO(-95)
 .nunflow
     STA addr
 .noadd

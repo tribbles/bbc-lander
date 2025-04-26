@@ -35,14 +35,12 @@
 .mulpos1
     LDA matha + 1
     BPL mulpos2
-    LDA matha
-    EOR #255
     SEC
-    ADC #0
+    LDA #0
+    SBC matha
     STA matha
-    LDA matha + 1
-    EOR #255
-    ADC #0
+    LDA #0
+    SBC matha + 1
     STA matha + 1
 .mulpos2
 

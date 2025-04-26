@@ -17,7 +17,7 @@ maxypos     = 24 * 8
     INCLUDE "zeropage.6502"
     INCLUDE "macros.6502"
 
-    ORG &2000
+    ORG &1a00
 
 .start
     LDX #LO(tape)
@@ -419,13 +419,15 @@ maxypos     = 24 * 8
     LDX #&9e        ; Z
     JSR osbyte
     BCC notleft
-    INC spiny
-    INC spiny
-    LDA spiny
-    CMP #16
-    BCC notleft
-    LDA #15
-    STA spiny
+    LDY spiny
+    CPY #7
+    BEQ notleft
+    INY
+    CPY #7
+    BEQ nomoreleft
+    INY
+.nomoreleft
+    STY spiny
 .notleft
 
     LDA #&81
@@ -433,13 +435,15 @@ maxypos     = 24 * 8
     LDX #&bd        ; X
     JSR osbyte
     BCC notright
-    DEC spiny
-    DEC spiny
-    LDA spiny
-    CMP #&f1
-    BCS notright
-    LDA #&f1
-    STA spiny
+    LDY spiny
+    CPY #LO(-7)
+    BEQ notright
+    DEY
+    CPY #LO(-7)
+    BEQ nomoreright
+    DEY
+.nomoreright
+    STY spiny
 .notright
 
     LDA spiny
@@ -453,6 +457,7 @@ maxypos     = 24 * 8
     LDA yangle
     CLC
     ADC spiny
+    ADC spiny
     STA yangle
 }
 
@@ -461,29 +466,33 @@ maxypos     = 24 * 8
     LDY #&ff
     LDX #&9a        ; M
     JSR osbyte
-    BCC notleft
-    INC spinz
-    INC spinz
-    LDA spinz
-    CMP #16
-    BCC notleft
-    LDA #15
-    STA spinz
-.notleft
+    BCC notup
+    LDY spinz
+    CPY #15
+    BEQ notup
+    INY
+    CPY #15
+    BEQ nomoreup
+    INY
+.nomoreup
+    STY spinz
+.notup
 
     LDA #&81
     LDY #&ff
     LDX #&b9        ; K
     JSR osbyte
-    BCC notright
-    DEC spinz
-    DEC spinz
-    LDA spinz
-    CMP #&f1
-    BCS notright
-    LDA #&f1
-    STA spinz
-.notright
+    BCC notdown
+    LDY spinz
+    CPY #LO(-15)
+    BEQ notdown
+    DEY
+    CPY #LO(-15)
+    BEQ nomoredown
+    DEY
+.nomoredown
+    STY spinz
+.notdown
 
     LDA spinz
     BEQ spinzero
@@ -508,13 +517,15 @@ maxypos     = 24 * 8
 
 {
     LDA #&81
-    LDX #&ff
+    LDX #&ff            ; Shift
     LDY #&ff
     JSR osbyte
     BCC noshift
     LDA yangle
     JSR sincos
+    INY                 ; X direction is negative (for some reason!)
     TYA
+    EOR #255
     THRUSTADD xthrust
     TXA
     THRUSTADD zthrust
@@ -522,6 +533,26 @@ maxypos     = 24 * 8
     THRUSTDEC xthrust
     THRUSTDEC ythrust
     THRUSTDEC zthrust
+}
+
+; Draw the ship angle on top left
+{
+    LDA yangle
+    JSR sincos
+    TYA
+    CLC
+    ADC #48
+    LSR A
+    STA x0
+    TXA
+    CLC
+    ADC #48
+    LSR A
+    STA y0
+    LDA #24
+    STA x1
+    STA y1
+    JSR plot_line
 }
 
 {
@@ -539,9 +570,10 @@ maxypos     = 24 * 8
 .negxmove
     CLC
     ADC mapx
-    STA player_x
+    STA mapx
     LDA player_x
     SBC #0
+    AND #63
     STA player_x
 .noxmove
 }
@@ -560,12 +592,14 @@ maxypos     = 24 * 8
 .negzmove
     CLC
     ADC mapz
-    STA player_z
+    STA mapz
     LDA player_z
     SBC #0
+    AND #63
     STA player_z
 .nozmove
 }
+
 {
     LDA ythrust
     BEQ noymove
@@ -581,9 +615,10 @@ maxypos     = 24 * 8
 .negymove
     CLC
     ADC heighty
-    STA player_y
+    STA heighty
     LDA player_y
     SBC #0
+    AND #63
     STA player_y
 .noymove
 }
