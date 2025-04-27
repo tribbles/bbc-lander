@@ -181,8 +181,10 @@ platheight  = 240
     AND #63        ; Remove trees and whatever I want the other bit to be!
     CLC
     ADC land_height
+    BCS over_height
     BPL under_height
-    LDY #127
+.over_height
+    LDA #127
 .under_height
     TAY
 
@@ -600,7 +602,6 @@ platheight  = 240
     THRUSTADD zthrust
 .noshift
     THRUSTDEC xthrust
-    ;THRUSTDEC ythrust
     THRUSTDEC zthrust
 
     LDY ythrust
@@ -771,10 +772,13 @@ platheight  = 240
     LDA player_y + 1
     SBC #0
     STA player_y + 1
-    BPL noymove
+    BNE noymove
+    LDA player_y
+    BMI noymove
+    LDA #128
+    STA player_y
     LDA #0
     STA heighty
-    STA player_y
     STA player_y + 1
     STA ythrust
 .noymove

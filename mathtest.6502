@@ -239,6 +239,10 @@ ORG &3000
     LDY #0
     JSR rephc
 
+    LDX #229
+    LDY #1
+    JSR rephc
+
 .loop
     JMP loop
 
