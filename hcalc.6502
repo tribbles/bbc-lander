@@ -1,0 +1,32 @@
+; Calculate the height of the land and the player
+{
+    LDA player_y
+    SEC
+    SBC #platheight
+    TAY
+    STA mathc
+    LDA player_y + 1
+    SBC #0
+    STA mathc + 1
+    BMI player_moves
+    BNE fixed_height
+    TYA
+    STA land_height
+    LDA #32
+    STA ship_height
+    BNE do_ship
+.fixed_height
+    LDA #255
+    STA land_height
+    LDA #32
+    STA ship_height
+    BNE do_ship
+.player_moves
+    LDA #32
+    SEC
+    SBC mathc
+    STA ship_height
+    LDA #0
+    STA land_height
+.do_ship
+}

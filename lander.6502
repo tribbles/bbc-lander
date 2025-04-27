@@ -8,6 +8,7 @@ screen2     = &6800
 displaysize = 7
 centresize  = 3
 maxypos     = 24 * 8
+platheight  = 240
 
 ;map      = &1000 ; 64x64 map
 
@@ -35,15 +36,17 @@ maxypos     = 24 * 8
     JSR set_colour
     LDA #0
     STA xoffset
-    STA yoffset
+    STA zoffset
 
     STA xthrust
     STA ythrust
     STA zthrust
-    STA yangle
     STA zangle
     STA spiny
     STA spinz
+
+    LDA #64
+    STA yangle
 
     LDA #32
     STA player_x
@@ -51,8 +54,16 @@ maxypos     = 24 * 8
     LDA #127
     STA mapx
     STA mapz
+
+    LDA #0
+    STA heighty
+    STA player_y + 1
+    LDA #platheight
+    STA player_y
     
 .endforever
+
+    INCLUDE "hcalc.6502"
 
 ; Loop 1 - calculate the X and Y coordinates of the map
 {
@@ -73,7 +84,7 @@ maxypos     = 24 * 8
     LSR A
     LSR A
     LSR A
-    STA yoffset     ; Calculate the fractional Z map display (0..7)
+    STA zoffset     ; Calculate the fractional Z map display (0..7)
 
     LDA #displaysize - 1
     STA jtmp        ; This is the current Z coordinate
@@ -82,7 +93,7 @@ maxypos     = 24 * 8
     ASL A
     ASL A
     ASL A           ; (0..<size>*8)
-    ORA yoffset     ; Add in the fractional offset
+    ORA zoffset     ; Add in the fractional offset
     STA jtmp + 2
 ; Get the tree height
     TAY
@@ -156,12 +167,23 @@ maxypos     = 24 * 8
     LDA map, Y
     TAY
     AND #192
+    LDX jtmp
+    CPX #centresize
+    BNE notcentre
+    LDX jtmp + 1
+    CPX #centresize
+    BNE notcentre
+    STA map_height
+.notcentre
     LDX offset
     STA collocs, X
     TYA
     AND #63        ; Remove trees and whatever I want the other bit to be!
     CLC
-    ADC #4
+    ADC land_height
+    BPL under_height
+    LDY #127
+.under_height
     TAY
 
     LDX jtmp + 2
@@ -190,7 +212,9 @@ maxypos     = 24 * 8
     INC offset     ; Go on to the next coordinate
     
     DEC jtmp + 1
-    BPL xloop
+    BMI alldonex
+    JMP xloop
+.alldonex
     DEC jtmp
     BMI alldone
     JMP zloop
@@ -408,11 +432,13 @@ maxypos     = 24 * 8
     JMP xloop
 .done
 }
+
     JSR plot_ship
 
     JSR swap_banks
     JSR clear_bank
 
+; Check Y rotation keys
 {
     LDA #&81
     LDY #&ff
@@ -461,6 +487,7 @@ maxypos     = 24 * 8
     STA yangle
 }
 
+; Check Z rotation keys
 {
     LDA #&81
     LDY #&ff
@@ -515,24 +542,80 @@ maxypos     = 24 * 8
     STA zangle
 }
 
+; Check thrust
 {
+    LDA player_y + 1
+    AND #&fe
+    BEQ canthrust
+    JMP noshift         ; Not enough oxygen!
+.canthrust
     LDA #&81
     LDX #&ff            ; Shift
     LDY #&ff
     JSR osbyte
-    BCC noshift
+    BCS shift
+    JMP noshift
+.shift
+    
+    LDA zangle
+    JSR sincos
+    STX zcoff
+    TYA
+    THRUSTADD ythrust
+
     LDA yangle
     JSR sincos
-    INY                 ; X direction is negative (for some reason!)
+    STX mathb
+
+    LDX zcoff
+    JSR mulxy
+
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    TAY
+    DEY                 ; X direction is negative (for some reason!)
     TYA
     EOR #255
     THRUSTADD xthrust
-    TXA
+
+    LDY mathb
+    LDX zcoff
+    JSR mulxy
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
     THRUSTADD zthrust
 .noshift
     THRUSTDEC xthrust
-    THRUSTDEC ythrust
+    ;THRUSTDEC ythrust
     THRUSTDEC zthrust
+
+    LDY ythrust
+    CPY #LO(-95)
+    BEQ nodec
+    DEY
+    CPY #LO(-95)
+    BEQ nolimit
+    DEY
+    CPY #LO(-95)
+    BEQ nolimit
+    DEY
+.nolimit
+    STY ythrust
+.nodec
 }
 
 ; Draw the ship angle on top left
@@ -541,16 +624,55 @@ maxypos     = 24 * 8
     JSR sincos
     TYA
     CLC
-    ADC #48
+    ADC #40
+    LSR A
     LSR A
     STA x0
+    PHA
     TXA
     CLC
-    ADC #48
+    ADC #88
+    LSR A
     LSR A
     STA y0
-    LDA #24
+    PHA
+    LDA yangle
+    CLC
+    ADC #100
+    JSR sincos
+    TYA
+    CLC
+    ADC #40
+    LSR A
+    LSR A
     STA x1
+    TXA
+    CLC
+    ADC #88
+    LSR A
+    LSR A
+    STA y1
+    JSR plot_line
+
+    PLA
+    STA y0
+    PLA
+    STA x0
+    LDA yangle
+    SEC
+    SBC #100
+    JSR sincos
+    TYA
+    CLC
+    ADC #40
+    LSR A
+    LSR A
+    STA x1
+    TXA
+    CLC
+    ADC #88
+    LSR A
+    LSR A
     STA y1
     JSR plot_line
 }
@@ -577,6 +699,7 @@ maxypos     = 24 * 8
     STA player_x
 .noxmove
 }
+
 {
     LDA zthrust
     BEQ nozmove
@@ -604,22 +727,56 @@ maxypos     = 24 * 8
     LDA ythrust
     BEQ noymove
     BMI negymove
-    CLC
+    LDX #0
+    STX mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ;CLC
     ADC heighty
     STA heighty
-    LDA player_y
-    ADC #0
-    AND #63
+    LDA mathc
+    ADC player_y
     STA player_y
-    BPL noymove
+    BCC noymove
+    INC player_y + 1
+    BNE noymove
 .negymove
+    LDX #0
+    STX mathc
+    EOR #255
     CLC
-    ADC heighty
+    ADC #1
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    STA mathc + 1
+    LDA heighty
+    SEC
+    SBC mathc + 1
     STA heighty
     LDA player_y
-    SBC #0
-    AND #63
+    SBC mathc
     STA player_y
+    LDA player_y + 1
+    SBC #0
+    STA player_y + 1
+    BPL noymove
+    LDA #0
+    STA heighty
+    STA player_y
+    STA player_y + 1
+    STA ythrust
 .noymove
 }
 
@@ -657,7 +814,7 @@ maxypos     = 24 * 8
     JMP pixelp
 
 .tape
-    EQUS "TAPE", 0
+    EQUS "TAPE", 13
 
     INCLUDE "screen.6502"
     INCLUDE "draw.6502"

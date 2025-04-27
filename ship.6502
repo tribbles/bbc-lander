@@ -60,7 +60,7 @@
     LSR A
     ASL A
     ;CLC
-    ADC #32
+    ADC ship_height
     STA y0
     
     LDY mathb
@@ -78,7 +78,7 @@
     LSR A
     ASL A
     ;CLC
-    ADC #32
+    ADC ship_height
     STA y1
     JSR plot_line
 

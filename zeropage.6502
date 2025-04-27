@@ -58,7 +58,11 @@ GUARD &90
 .mathb
     SKIP 1
 .mathc
-    SKIP 3
+    SKIP 1
+.mathc_1
+    SKIP 1
+.mathc_2
+    SKIP 1
 .maths
     SKIP 1
 
@@ -81,19 +85,21 @@ GUARD &90
     SKIP 1
 .xoffset    ; Fractional X offset (taken from bits 4..7 of mapx)
     SKIP 1
-.yoffset    ; Fractional Y offset (taken from bits 4..7 of mapy)
+.zoffset    ; Fractional Z offset (taken from bits 4..7 of mapz)
     SKIP 1
 .mapx       ; Fractional X offset (bits 0..7 = fraction, 8..13 = map X, 14..15 = zero)
     SKIP 1
 .player_x
     SKIP 1
-.mapz       ; Fractional Y offset (bits 0..7 = fraction, 8..13 = map Y, 14..15 = zero)
+.mapz       ; Fractional Z offset (bits 0..7 = fraction, 8..13 = map Z, 14..15 = zero)
     SKIP 1
 .player_z
     SKIP 1
-.heighty
+.heighty    ; Fractional Y offset
     SKIP 1
 .player_y
+    SKIP 1
+.player_y1
     SKIP 1
 .mapaddr    ; Pointer to the map address that we'll be reading
     SKIP 2
@@ -118,5 +124,17 @@ GUARD &90
     SKIP 1
 .zthrust
     SKIP 1
-.player_height 
+
+.ship_height    ; The height to display the ship at
+    SKIP 1
+.ship_height2
+    SKIP 1
+.land_height    ; The height to display the land
+    SKIP 1
+.map_height     ; The height at the player's current point on the map
+    SKIP 1
+
+.ycoff
+    SKIP 1
+.zcoff
     SKIP 1

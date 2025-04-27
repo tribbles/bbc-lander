@@ -29,11 +29,21 @@ GUARD &90
     SKIP 1
 .xlptr
     SKIP 2
+.ship_height
+    SKIP 1
+.land_height
+    SKIP 1
+.player_y
+    SKIP 2
+platheight = 240
 
     INCLUDE "macros.6502"
 
 ORG &3000
 .start
+    LDA #32
+    STA ship_height
+
     LDA #1
     LDX #0
     LDY #1
@@ -172,8 +182,100 @@ ORG &3000
     LDA #LO(-32)
     JSR repthadd
 
+    LDX #64
+    LDY #64
+    JSR repmulxy
+    LDX #LO(-64)
+    LDY #64
+    JSR repmulxy
+    LDX #LO(-64)
+    LDY #LO(-64)
+    JSR repmulxy
+    LDX #64
+    LDY #LO(-64)
+    JSR repmulxy
+
+    LDX #1
+    LDY #64
+    JSR repmulxy
+
+    LDX #12
+    LDY #34
+    JSR repmulxy
+
+    LDX #LO(platheight - 128)
+    LDY #HI(platheight - 128)
+    JSR rephc
+
+    LDX #LO(platheight - 32)
+    LDY #HI(platheight - 32)
+    JSR rephc
+
+    LDX #LO(platheight - 1)
+    LDY #HI(platheight - 1)
+    JSR rephc
+
+    LDX #LO(platheight + 0)
+    LDY #HI(platheight + 0)
+    JSR rephc
+
+    LDX #LO(platheight + 1)
+    LDY #HI(platheight + 1)
+    JSR rephc
+
+    LDX #LO(platheight + 32)
+    LDY #HI(platheight + 32)
+    JSR rephc
+
+    LDX #LO(platheight + 128)
+    LDY #HI(platheight + 128)
+    JSR rephc
+
+    LDX #128
+    LDY #0
+    JSR rephc
+
+    LDX #29
+    LDY #0
+    JSR rephc
+
 .loop
     JMP loop
+
+
+.rephc
+    STX player_y
+    STY player_y + 1
+    LDX #player_y
+    JSR writehex4
+    LDA #'='
+    JSR oswrch
+
+    INCLUDE "hcalc.6502"
+
+    LDA ship_height
+    JSR writehex
+    JSR comma
+    LDA land_height
+    JSR writehex
+    JSR space
+    LDX #mathc
+    JSR writehex4
+    JMP endl
+
+.repmulxy
+    TXA
+    JSR writehex
+    LDA #'x'
+    JSR oswrch
+    TYA
+    JSR writehex
+    LDA #'='
+    JSR oswrch
+    JSR mulxy
+    LDX #mathc
+    JSR writehex4
+    JMP endl
 
 .repthadd
     TAX

@@ -1,4 +1,5 @@
 MACRO THRUSTDEC addr
+{
 ; Reduces the thrust value
     LDA addr
     BEQ noshrink
@@ -8,13 +9,14 @@ MACRO THRUSTDEC addr
 .incshrink
     INC addr
 .noshrink
+}
 ENDMACRO
 
 MACRO THRUSTADD addr
+{
 ; X and Y are preserved, but N and Z must be set
     BEQ noadd
     BMI negadd
-    LSR A
     CLC
     ADC addr
     BMI nunflow
@@ -25,8 +27,6 @@ MACRO THRUSTADD addr
     STA addr
     JMP noadd
 .negadd
-    LSR A
-    ORA #128
     CLC
     ADC addr
     BPL nunflow
@@ -36,5 +36,6 @@ MACRO THRUSTADD addr
 .nunflow
     STA addr
 .noadd
+}
 ENDMACRO
 
