@@ -415,3 +415,41 @@ osbyte   = &fff4
     LDA #19
     JMP osbyte
 }
+
+.plot_char
+; X is LO offset
+; Y is HI offset
+; A is the character
+    STX write_font + 1
+    TAX
+    TYA
+    CLC
+    ADC current_screen_hi
+    STA write_font + 2
+    TXA
+.plot_nextchar
+    STA mathc
+    ASL A
+    ADC mathc
+    ASL A
+    ADC #LO(font)
+    STA read_font + 1
+    LDA #0
+    ADC #HI(font)
+    STA read_font + 2
+    LDX #5
+.read_font
+    LDA &ffff, X
+.write_font
+    STA &ffff, X
+    DEX
+    BPL read_font
+    LDA write_font + 1
+    CLC
+    ADC #8
+    STA write_font + 1
+
+    RTS
+    
+.font
+    INCBIN  "font.bin"

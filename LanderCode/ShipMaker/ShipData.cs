@@ -94,6 +94,8 @@ namespace ShipMaker
         {
             var points = new double[_shipPoints.GetLength(0), 3];
 
+            var sin90 = (double)Math.Sin(-90 * Math.PI / 180.0);
+            var cos90 = (double)Math.Cos(-90 * Math.PI / 180.0);
             var siny = (double)Math.Sin(rotY * Math.PI / 180.0);
             var cosy = (double)Math.Cos(rotY * Math.PI / 180.0);
             var sinz = (double)Math.Sin(rotZ * Math.PI / 180.0);
@@ -104,6 +106,14 @@ namespace ShipMaker
                 double x = _shipPoints[p, 0];
                 double y = _shipPoints[p, 1];
                 double z = _shipPoints[p, 2];
+
+                // Rotate by Y
+                {
+                    var nx = x * cos90 - z * sin90;
+                    var nz = z * cos90 + x * sin90;
+                    x = nx;
+                    z = nz;
+                }
 
                 // Rotate by Z
                 {
