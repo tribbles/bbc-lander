@@ -200,6 +200,111 @@ ENDIF
     TAY
     RTS
 
+.bin2dec16
+{
+; Converted from https://stardot.org.uk/forums/viewtopic.php?t=25451
+; Value is in 'mathc', written to 'digits', with 255 being terminator
+; A is the number of digits
+    value = mathc
+    flag = mathb
+   
+    LDA #LO(digits)
+    STA digit_write16 + 1
+.*doconvert16
+    LDX #4
+    LDA #1
+    STA flag
+    LDA #&20
+.nextdigit
+    LSR value + 1
+    ROR value
+.loop
+    TAY
+    ROL value
+    ROL value + 1
+    BCS skip1
+    LDA value
+    CMP tablo, X
+    LDA value + 1
+    SBC tabhi, X
+    BCC skip2
+.skip1
+    LDA value
+    SBC tablo, X
+    STA value
+    LDA value + 1
+    SBC tabhi, X
+    STA value + 1
+    SEC
+.skip2
+    TYA
+    ROL A
+    BCC loop
+    BNE nonzero
+    CPX flag
+    BCS skipleadingzero
+.nonzero
+    STX flag
+.digit_write16
+    STA digits
+    INC digit_write16 + 1
+    ;EOR #&30
+    ;JSR oswrch
+.skipleadingzero
+    LDA #&10
+    DEX
+    BPL nextdigit
+    LDX digit_write16 + 1
+    LDA #255
+    STA 0, X
+    TXA
+    SEC
+    SBC #LO(digits)
+    RTS
+
+.tablo EQUB &00:EQUB &00:EQUB &00:EQUB &00
+.tabhi EQUB &40:EQUB &50:EQUB &64:EQUB &7D:EQUB &9C
+}
+
+.bin2dec24
+; Converted from https://stardot.org.uk/forums/viewtopic.php?t=25451
+; Value is in 'mathc', written to 'digits', with 255 being terminator
+; A is the number of digits
+{
+    value = mathc
+    LDX #0
+    LDA #255
+    PHA
+.calcloop
+    CLV
+    LDA #0
+    LDY #23
+.loop
+    CMP #5
+    BCC skip
+    SBC #5 + 128
+    SEC
+.skip
+    ROL value
+    ROL value+1
+    ROL value+2
+    ROL A
+    DEY
+    BPL loop
+    PHA
+    BVS calcloop
+    PLA
+.printloop
+    STA digits, X
+    INX
+    PLA
+    BPL printloop
+    LDA #255
+    STA digits, X
+    TXA
+    RTS
+}
+
 ALIGN    64
 divmaxx = 50000
 divmaxy = 30000

@@ -11,6 +11,7 @@ GUARD &90
     SKIP 3
 .maths
     SKIP 1
+.digits
 .zangle
     SKIP 1
 .yangle
@@ -243,9 +244,152 @@ ORG &3000
     LDY #1
     JSR rephc
 
+    LDX #LO(12345)
+    LDY #HI(12345)
+    JSR repdec16
+
+    LDX #LO(1)
+    LDY #HI(1)
+    JSR repdec16
+
+    LDX #LO(0)
+    LDY #HI(0)
+    JSR repdec16
+
+    LDX #LO(9)
+    LDY #HI(9)
+    JSR repdec16
+
+    LDX #LO(10)
+    LDY #HI(10)
+    JSR repdec16
+
+    LDX #LO(99)
+    LDY #HI(99)
+    JSR repdec16
+
+    LDX #LO(100)
+    LDY #HI(100)
+    JSR repdec16
+
+    LDX #LO(255)
+    LDY #HI(255)
+    JSR repdec16
+
+    LDX #LO(256)
+    LDY #HI(256)
+    JSR repdec16
+
+    LDX #LO(999)
+    LDY #HI(999)
+    JSR repdec16
+
+    LDX #LO(1000)
+    LDY #HI(1000)
+    JSR repdec16
+
+    LDX #LO(1000)
+    LDY #HI(1000)
+    LDA #1000 / 65536
+    JSR repdec24
+
+    LDX #LO(9999)
+    LDY #HI(9999)
+    LDA #10000 / 65536
+    JSR repdec24
+
+    LDX #LO(65535)
+    LDY #HI(65535)
+    LDA #65535 / 65536
+    JSR repdec24
+
+    LDX #LO(65536)
+    LDY #HI(65536)
+    LDA #65536 / 65536
+    JSR repdec24
+
+    LDX #LO(165536)
+    LDY #HI(165536)
+    LDA #165536 / 65536
+    JSR repdec24
+
+    LDX #LO(9165536)
+    LDY #HI(9165536)
+    LDA #9165536 / 65536
+    JSR repdec24
+
 .loop
     JMP loop
 
+.repdec16
+{
+    STX mathc
+    STY mathc + 1
+    LDX #mathc
+    JSR writehex4
+    LDA #'='
+    JSR oswrch
+    JSR bin2dec16;_fix3
+    TAY
+    ORA #'0'
+    JSR oswrch
+    LDA #'+'
+    JSR oswrch
+    LDA #'0'
+.prefix_loop
+    CPY #3
+    BCS already_long
+    JSR oswrch
+    INY
+    BNE prefix_loop
+.already_long
+    LDX #0
+.rdloop
+    LDA digits, X
+    BMI rddone
+    ORA #&30
+    JSR oswrch
+    INX
+    BNE rdloop
+.rddone
+    JMP endl
+}
+
+.repdec24
+{
+    STX mathc
+    STY mathc + 1
+    STA mathc + 2
+    JSR writehex
+    LDX #mathc
+    JSR writehex4
+    LDA #'='
+    JSR oswrch
+    JSR bin2dec24
+    TAY
+    ORA #'0'
+    JSR oswrch
+    LDA #'+'
+    JSR oswrch
+    LDA #'0'
+.prefix_loop
+    CPY #7
+    BCS already_long
+    JSR oswrch
+    INY
+    BNE prefix_loop
+.already_long
+    LDX #0
+.rdloop
+    LDA digits, X
+    BMI rddone
+    ORA #&30
+    JSR oswrch
+    INX
+    BNE rdloop
+.rddone
+    JMP endl
+}
 
 .rephc
     STX player_y

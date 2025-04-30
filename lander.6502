@@ -61,6 +61,28 @@ platheight  = 240
     LDA #platheight
     STA player_y
     
+    LDX #17
+    LDY #0
+    LDA #1
+    JSR plot_char
+    LDA #2
+    JSR plot_nextchar
+    LDA #3
+    JSR plot_nextchar
+    LDX #16
+    LDY #1
+    LDA #4
+    JSR plot_char
+    LDA #5
+    JSR plot_nextchar
+    LDA #6
+    JSR plot_nextchar
+
+    LDX #50
+    LDY #0
+    LDA #13
+    JSR plot_char
+
 .endforever
 
     INCLUDE "hcalc.6502"
@@ -781,28 +803,6 @@ platheight  = 240
     STA ythrust
 .noymove
 }
-
-    LDX #17
-    LDY #0
-    LDA #1
-    JSR plot_char
-    LDA #2
-    JSR plot_nextchar
-    LDA #3
-    JSR plot_nextchar
-    LDX #16
-    LDY #1
-    LDA #4
-    JSR plot_char
-    LDA #5
-    JSR plot_nextchar
-    LDA #6
-    JSR plot_nextchar
-
-    LDX #50
-    LDY #0
-    LDA #12
-    JSR plot_char
 
     JSR plot_ship
 
