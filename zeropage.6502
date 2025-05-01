@@ -2,6 +2,7 @@ ORG &0
 
 GUARD &90
 
+.digits
 .x0
     SKIP 1
 .y0
@@ -10,8 +11,6 @@ GUARD &90
     SKIP 1
 .y1
     SKIP 1
-.pixelmask
-    SKIP 2
 .dx
     SKIP 1
 .dy
@@ -30,6 +29,8 @@ GUARD &90
     SKIP 8
 .rightbits
     SKIP 8
+.pixelmask
+    SKIP 2
 
 .current_screen_hi
     SKIP 1
@@ -137,4 +138,15 @@ GUARD &90
 .ycoff
     SKIP 1
 .zcoff
+    SKIP 1
+
+.last_altitude
+    SKIP 2
+.last_heading
+    SKIP 2
+.current_score
+    SKIP 3
+.current_fuel
+    SKIP 2      ; Last digit is always 0!
+.update_fuel
     SKIP 1

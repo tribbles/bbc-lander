@@ -45,7 +45,7 @@ platheight  = 240
     STA spiny
     STA spinz
 
-    LDA #64
+    LDA #192
     STA yangle
 
     LDA #32
@@ -60,17 +60,18 @@ platheight  = 240
     STA player_y + 1
     LDA #platheight
     STA player_y
-    
-    LDX #17
-    LDY #0
+
+IF (FALSE)    
+    LDX #LO(heading_addr)
+    LDY #HI(heading_addr)
     LDA #1
     JSR plot_char
     LDA #2
     JSR plot_nextchar
     LDA #3
     JSR plot_nextchar
-    LDX #16
-    LDY #1
+    LDX #LO(altitude_addr)
+    LDY #HI(altitude_addr)
     LDA #4
     JSR plot_char
     LDA #5
@@ -78,10 +79,27 @@ platheight  = 240
     LDA #6
     JSR plot_nextchar
 
-    LDX #50
-    LDY #0
+    LDX #LO(direction_addr)
+    LDY #HI(direction_addr)
     LDA #13
     JSR plot_char
+
+    LDX #LO(score_addr)
+    LDY #HI(score_addr)
+    LDA #8
+    JSR plot_char
+
+    LDX #LO(fuel_addr)
+    LDY #HI(fuel_addr)
+    LDA #9
+    JSR plot_char
+ENDIF
+
+    LDA #&99
+    STA current_fuel
+    STA current_fuel + 1
+    LDA #1
+    STA update_fuel
 
 .endforever
 
@@ -244,7 +262,13 @@ platheight  = 240
     JMP zloop
 .alldone
 }
-
+    LDA update_fuel
+    BEQ no_fuelupdate
+    JSR plot_fuel
+    LDA #0
+    STA update_fuel
+.no_fuelupdate
+    JSR move_particles
     JSR swap_banks
     JSR clear_bank
 
@@ -513,7 +537,7 @@ platheight  = 240
 {
     LDA #&81
     LDY #&ff
-    LDX #&9a        ; M
+    LDX #&b9        ; K
     JSR osbyte
     BCC notup
     LDY spinz
@@ -529,7 +553,7 @@ platheight  = 240
 
     LDA #&81
     LDY #&ff
-    LDX #&b9        ; K
+    LDX #&9a        ; M
     JSR osbyte
     BCC notdown
     LDY spinz
@@ -571,6 +595,11 @@ platheight  = 240
     BEQ canthrust
     JMP nothrust         ; Not enough oxygen!
 .canthrust
+    LDA current_fuel
+    ORA current_fuel + 1
+    BNE enoughfuel
+    JMP nothrust
+.enoughfuel
     LDA #&81
     LDX #LO(-99)        ; Space
     LDY #&ff
@@ -578,6 +607,16 @@ platheight  = 240
     BCS thrust
     JMP nothrust
 .thrust
+    LDA current_fuel
+    SED
+    SEC
+    SBC #1
+    STA current_fuel
+    LDA current_fuel + 1
+    SBC #0
+    STA current_fuel + 1
+    CLD
+    INC update_fuel
     
     LDA zangle
     JSR sincos
@@ -805,6 +844,7 @@ platheight  = 240
 }
 
     JSR plot_ship
+    JSR plot_particles
 
     JMP endforever
     
@@ -839,6 +879,34 @@ platheight  = 240
     DEY
     JMP pixelp
 
+.plot_fuel
+    LDX #LO(fuel_addr)
+    LDY #HI(fuel_addr)
+    JSR prepare_char
+    ;LDA current_fuel + 2
+    ;AND #15
+    ;JSR plot_nextchar
+    LDA current_fuel + 1
+    TAY
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    TYA
+    AND #15
+    JSR plot_nextchar
+    LDA current_fuel
+    TAY
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    TYA
+    AND #15
+    JMP plot_nextchar
+
 .tape
     EQUS "TAPE", 13
 
@@ -846,6 +914,7 @@ platheight  = 240
     INCLUDE "draw.6502"
     INCLUDE "math.6502"
     INCLUDE "ship.6502"
+    INCLUDE "particles.6502"
 
     ALIGN 256
 .map

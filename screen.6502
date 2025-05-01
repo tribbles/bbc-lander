@@ -1,6 +1,11 @@
 crtcreg  = &fe00
 crtcval  = &fe01
 ula      = &fe20
+heading_addr = &0011
+altitude_addr = &0110
+direction_addr = &0032
+score_addr = &00d1
+fuel_addr = &01d0
 
 .set_mode
 {
@@ -415,6 +420,19 @@ osbyte   = &fff4
     LDA #19
     JMP osbyte
 }
+
+.prepare_char
+    STX write_font1 + 1
+    STX write_font2 + 1
+    TYA
+    CLC
+    ADC #HI(screen1)
+    STA write_font1 + 2
+    TYA
+    CLC
+    ADC #HI(screen2)
+    STA write_font2 + 2
+    RTS
 
 .plot_char
 ; X is LO offset

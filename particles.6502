@@ -1,0 +1,18 @@
+particle_x = 0
+particle_y = 2
+particle_z = 4
+particle_dx = 6
+particle_dy = 7
+particle_dz = 8
+particle_age = 9
+particle_size = 10
+particle_count = 16
+
+.particles
+    SKIP particle_size * particle_count
+
+.move_particles
+    RTS
+
+.plot_particles
+    RTS

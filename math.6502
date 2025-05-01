@@ -203,14 +203,14 @@ ENDIF
 .bin2dec16
 {
 ; Converted from https://stardot.org.uk/forums/viewtopic.php?t=25451
-; Value is in 'mathc', written to 'digits', with 255 being terminator
+; Value is in 'mathc' (16-bit), written to 'digits', with 255 being terminator
 ; A is the number of digits
     value = mathc
     flag = mathb
    
     LDA #LO(digits)
     STA digit_write16 + 1
-.*doconvert16
+.doconvert16
     LDX #4
     LDA #1
     STA flag
@@ -268,7 +268,7 @@ ENDIF
 
 .bin2dec24
 ; Converted from https://stardot.org.uk/forums/viewtopic.php?t=25451
-; Value is in 'mathc', written to 'digits', with 255 being terminator
+; Value is in 'mathc' (24-bit), written to 'digits', with 255 being terminator
 ; A is the number of digits
 {
     value = mathc
