@@ -1,18 +1,148 @@
-particle_x = 0
-particle_y = 2
-particle_z = 4
-particle_dx = 6
-particle_dy = 7
-particle_dz = 8
-particle_age = 9
-particle_size = 10
 particle_count = 16
 
-.particles
-    SKIP particle_size * particle_count
+.particle_xl
+    SKIP particle_count
+.particle_xh
+    SKIP particle_count
+.particle_dx
+    SKIP particle_count
+.particle_yl
+    SKIP particle_count
+.particle_yh
+    SKIP particle_count
+.particle_dy
+    SKIP particle_count
+.particle_zl
+    SKIP particle_count
+.particle_zh
+    SKIP particle_count
+.particle_dz
+    SKIP particle_count
+.particle_age
+    SKIP particle_count
+
+MACRO MOVPART dirl, dirh, thrust, delta, negthrust
+{
+    LDA delta, X
+    LDY #0
+IF thrust != 0
+IF negthrust
+    SEC
+    SBC thrust
+ELSE
+    CLC
+    ADC thrust 
+ENDIF
+ENDIF
+    BEQ nextmove    ; Delta is zero, so no movement required
+    BPL positive
+    DEY
+.positive
+    CLC
+    ADC dirl, X
+    STA dirl, X
+    TYA
+    ADC dirh, X
+    STA dirh, X
+.nextmove
+}
+ENDMACRO
+
+.create_particle
+{
+    LDX current_particle
+    DEX
+    BPL no_wrap
+    LDX #particle_count - 1
+.no_wrap
+    STX current_particle
+    LDA #16
+    STA particle_age, X
+    LDA #0
+    STA particle_xh, X
+    STA particle_yh, X
+    STA particle_zh, X
+    STA particle_xl, X
+    STA particle_yl, X
+    STA particle_zl, X
+    LDA particle_xdir
+    STA particle_dx, X
+    LDA particle_ydir
+    STA particle_dy, X
+    LDA particle_zdir
+    STA particle_dz, X
+    RTS
+}
 
 .move_particles
+{
+    LDX #particle_count - 1
+.particle_loop
+    LDA particle_age, X
+    BEQ particle_old
+    DEC particle_age, X
+    MOVPART particle_xl, particle_xh, 0, particle_dx, FALSE
+    MOVPART particle_yl, particle_yh, 0, particle_dy, FALSE
+    MOVPART particle_zl, particle_zh, 0, particle_dz, FALSE
+.particle_old
+    DEX
+    BPL particle_loop
     RTS
+}
 
 .plot_particles
+{
+    LDX #particle_count - 1
+.particle_loop
+    LDA particle_age, X
+    BEQ particle_old
+    STX jtmp
+    LDA particle_xh, X
+    TAY
+    LDA particle_zh, X
+
+    STA jtmp + 1
+    TAX
+    JSR depthX
+    LDA mathc + 1
+    CLC
+    ADC #127
+    TAX
+    LDA mathc + 2
+    ADC #0
+    BNE particle_offscreen
+    STX x0
+
+    LDX jtmp
+    LDA particle_yh, X
+
+    CLC
+    ADC land_height
+    BCS particle_offscreen
+    BMI particle_offscreen
+    TAY
+
+    LDX jtmp + 1
+    JSR depthY
+
+    LDA mathc + 1
+    CLC
+    ADC #40        ; This is the height
+    TAY
+    LDA mathc + 2
+    ADC #0
+    BNE particle_offscreen
+    LDX x0
+    JSR pixel
+    LDX jtmp
+    BPL particle_old
+
+.particle_offscreen
+    LDX jtmp
+    LDA #0
+    STA particle_age, X
+.particle_old
+    DEX
+    BPL particle_loop
     RTS
+}

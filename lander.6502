@@ -262,12 +262,14 @@ ENDIF
     JMP zloop
 .alldone
 }
+
     LDA update_fuel
     BEQ no_fuelupdate
     JSR plot_fuel
     LDA #0
     STA update_fuel
 .no_fuelupdate
+
     JSR move_particles
     JSR swap_banks
     JSR clear_bank
@@ -622,6 +624,7 @@ ENDIF
     JSR sincos
     STX zcoff
     TYA
+    STA particle_ydir       ; Store this for the particle creation
     THRUSTADD ythrust
 
     LDA yangle
@@ -641,9 +644,10 @@ ENDIF
     ASL mathc
     ROL A
     TAY
-    DEY                 ; X direction is negative (for some reason!)
+    DEY                  ; X direction is negative (for some reason!)
     TYA
     EOR #255
+    STA particle_xdir       ; Store this for the particle creation
     THRUSTADD xthrust
 
     LDY mathb
@@ -658,7 +662,9 @@ ENDIF
     ROL A
     ASL mathc
     ROL A
+    STA particle_zdir       ; Store this for the particle creation
     THRUSTADD zthrust
+    JSR create_particle
 .nothrust
     THRUSTDEC xthrust
     THRUSTDEC zthrust
@@ -674,6 +680,9 @@ ENDIF
     BEQ nolimit
     DEY
 .nolimit
+    LDY #0
+    STY xthrust
+    STY zthrust
     STY ythrust
 .nodec
 }
@@ -843,7 +852,7 @@ ENDIF
 .noymove
 }
 
-    JSR plot_ship
+     JSR plot_ship
     JSR plot_particles
 
     JMP endforever
@@ -883,9 +892,6 @@ ENDIF
     LDX #LO(fuel_addr)
     LDY #HI(fuel_addr)
     JSR prepare_char
-    ;LDA current_fuel + 2
-    ;AND #15
-    ;JSR plot_nextchar
     LDA current_fuel + 1
     TAY
     LSR A

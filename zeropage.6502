@@ -150,3 +150,12 @@ GUARD &90
     SKIP 2      ; Last digit is always 0!
 .update_fuel
     SKIP 1
+
+.current_particle
+    SKIP 1
+.particle_xdir
+    SKIP 1
+.particle_ydir
+    SKIP 1
+.particle_zdir
+    SKIP 1
