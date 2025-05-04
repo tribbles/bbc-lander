@@ -90,6 +90,26 @@
     RTS
 }
 
+.usmulxy
+{
+    STX mathc
+    STY mathc + 1
+    LDA #0
+    LDX #8
+    LSR mathc
+.mulxyloop
+    BCC no_add
+    CLC
+    ADC mathc + 1
+.no_add
+    ROR A
+    ROR mathc
+    DEX
+    BNE mulxyloop
+    STA mathc + 1
+    RTS
+}
+
 .mulxy
 ; Multiply X by Y
 {
@@ -307,8 +327,8 @@ ENDIF
 
 ALIGN    64
 divmaxx = 50000
-divmaxy = 30000
-divadd = 33
+divmaxy = 32768
+divadd = 31
 .divtableLX
     FOR n, 1, 64
     EQUB LO(divmaxx / (n + divadd))

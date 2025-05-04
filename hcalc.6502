@@ -1,32 +1,63 @@
 ; Calculate the height of the land and the player
+; Player's Z-depth is always 32, which means the landscape height is
+; exactly double that of the value in the map
+;
+; The game code does this:
+;    Y is the map height value at the coordinate
+;    TYA
+;    AND #63        ; Remove trees and water / platform indicators
+;    CLC
+;    ADC land_height << THIS IS WHAT WE WANT TO CALCULATE
+;    BCS over_height
+;    BPL under_height
+;.over_height
+;    LDA #127
+;.under_height
+;    TAY
+;    LDX jtmp + 2
+;    JSR depthY
+;    LDA mathc + 1
+;    CLC
+;    ADC #land_offset        ; This is the height offset
+;    TAX
+;    LDA mathc + 2
+;    ADC #0
+;    BEQ onscreeny
+;    BMI above
+
 {
+    ; Calculate the pixel height of where the player would be
+    LDY #0
     LDA player_y
     SEC
-    SBC #platheight
+    SBC #land_offset
     TAY
-    STA mathc
+    STA actual_landheight
     LDA player_y + 1
     SBC #0
-    STA mathc + 1
+    STA actual_landheight + 1
     BMI player_moves
     BNE fixed_height
     TYA
     STA land_height
-    LDA #32
+    LDA #48
     STA ship_height
     BNE do_ship
 .fixed_height
     LDA #255
     STA land_height
-    LDA #32
+    LDA #48
     STA ship_height
     BNE do_ship
 .player_moves
-    LDA #32
+    LDA #24
     SEC
-    SBC mathc
+    SBC actual_landheight
+    ASL A
     STA ship_height
     LDA #0
     STA land_height
+    STA actual_landheight
+    STA actual_landheight + 1
 .do_ship
 }

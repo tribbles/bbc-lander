@@ -132,6 +132,8 @@ GUARD &90
     SKIP 1
 .land_height    ; The height to display the land
     SKIP 1
+.actual_landheight  ; This is used for particle calculation
+    SKIP 2
 .map_height     ; The height at the player's current point on the map
     SKIP 1
 
@@ -143,7 +145,11 @@ GUARD &90
 .last_altitude
     SKIP 2
 .last_heading
-    SKIP 2
+    SKIP 1
+.last_landheight
+    SKIP 1
+.last_playerheight
+    SKIP 1
 .current_score
     SKIP 3
 .current_fuel

@@ -8,7 +8,8 @@ screen2     = &6800
 displaysize = 7
 centresize  = 3
 maxypos     = 24 * 8
-platheight  = 240
+platheight  = 40
+land_offset = 40
 
 ;map      = &1000 ; 64x64 map
 
@@ -49,6 +50,7 @@ platheight  = 240
     STA yangle
 
     LDA #32
+    LDA #0
     STA player_x
     STA player_z
     LDA #127
@@ -104,6 +106,36 @@ ENDIF
 .endforever
 
     INCLUDE "hcalc.6502"
+
+{
+    LDA ship_height
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #8 + 2
+    LDY #23
+    JSR plot_3digits
+}
+
+{
+    LDA land_height
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #8 + 32 + 2
+    LDY #23
+    JSR plot_3digits
+}
+
+{
+    LDA player_y
+    STA mathc
+    LDA player_y + 1
+    STA mathc + 1
+    LDX #192 + 2
+    LDY #23
+    JSR plot_3digits
+}
 
 ; Loop 1 - calculate the X and Y coordinates of the map
 {
@@ -218,7 +250,7 @@ ENDIF
     LDX offset
     STA collocs, X
     TYA
-    AND #63        ; Remove trees and whatever I want the other bit to be!
+    AND #63        ; Remove trees and water / platform indicators
     CLC
     ADC land_height
     BCS over_height
@@ -233,7 +265,7 @@ ENDIF
     
     LDA mathc + 1
     CLC
-    ADC #40        ; This is the height
+    ADC #land_offset        ; This is the height offset
     TAX
     LDA mathc + 2
     ADC #0
@@ -269,6 +301,52 @@ ENDIF
     LDA #0
     STA update_fuel
 .no_fuelupdate
+
+{
+    LDA player_y
+    LDY player_y + 1
+    CMP last_altitude
+    BNE alt_changed
+    CPY last_altitude + 1
+    BEQ alt_notchanged
+.alt_changed
+    STA last_altitude
+    STA mathc
+    STY last_altitude + 1
+    STY mathc + 1
+    LDX #LO(altitude_addr)
+    LDY #HI(altitude_addr)
+    JSR plot_3digits
+.alt_notchanged
+}
+
+{
+    LDA yangle
+    CMP last_heading
+    BEQ heading_notchanged
+    STA last_heading
+    CLC
+    ADC #64
+    TAY
+    LDX #180
+    JSR usmulxy
+    LDY #0
+; mathc + 1 is 0..180
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    STA mathc
+    BCC notover
+    INY
+.notover
+    STY mathc + 1
+; mathc is now 0..360
+    LDX #LO(heading_addr)
+    LDY #HI(heading_addr)
+    JSR plot_3digits
+.heading_notchanged
+}
+
 
     JSR move_particles
     JSR swap_banks
@@ -840,19 +918,17 @@ ENDIF
     LDA player_y + 1
     SBC #0
     STA player_y + 1
-    BNE noymove
-    LDA player_y
-    BMI noymove
-    LDA #128
-    STA player_y
+    BPL noymove
+; Gone below the height of the map!
     LDA #0
     STA heighty
+    STA player_y
     STA player_y + 1
     STA ythrust
 .noymove
 }
 
-     JSR plot_ship
+    JSR plot_ship
     JSR plot_particles
 
     JMP endforever
@@ -893,23 +969,23 @@ ENDIF
     LDY #HI(fuel_addr)
     JSR prepare_char
     LDA current_fuel + 1
-    TAY
+    TAX
     LSR A
     LSR A
     LSR A
     LSR A
     JSR plot_nextchar
-    TYA
+    TXA
     AND #15
     JSR plot_nextchar
     LDA current_fuel
-    TAY
+    TAX
     LSR A
     LSR A
     LSR A
     LSR A
     JSR plot_nextchar
-    TYA
+    TXA
     AND #15
     JMP plot_nextchar
 

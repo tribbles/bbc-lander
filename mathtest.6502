@@ -1,4 +1,19 @@
 oswrch = &ffee
+osnewl = &ffe7
+osasci = &ffe3
+
+TEST_MULTIPLY = FALSE
+TEST_SHIPPLOT = FALSE
+TEST_SINCOS = FALSE
+TEST_HCALC = TRUE
+TEST_THRUSTADD = FALSE
+TEST_MULXY = FALSE
+TEST_DEC16 = FALSE
+TEST_DEC24 = FALSE
+TEST_ANGLES = FALSE
+TEST_PARTICLES = TRUE
+TEST_ZERODEPTH = FALSE
+
 ORG &70
 
 GUARD &90
@@ -29,8 +44,10 @@ GUARD &90
 .x1
 .particle_zdir
     SKIP 1
+.xthrust
 .y1
     SKIP 1
+.zthrust
 .xlptr
     SKIP 2
 .ship_height
@@ -38,11 +55,16 @@ GUARD &90
 .land_height
     SKIP 1
 .player_y
-    SKIP 2
+    SKIP 1
+.player_y1
+    SKIP 1
 .zcoff
 .current_particle
     SKIP 1
-platheight = 240
+.actual_landheight
+    SKIP 2
+platheight  = 40
+land_offset = 40
 
     INCLUDE "macros.6502"
 
@@ -51,6 +73,9 @@ ORG &3000
     LDA #32
     STA ship_height
 
+IF TEST_MULTIPLY
+    JSR write_stringstars
+    EQUS "Multiply 8-bit by 16-bit", 13, 0
     LDA #1
     LDX #0
     LDY #1
@@ -110,7 +135,11 @@ ORG &3000
     LDX #&53
     LDY #&5b
     JSR repmul
+ENDIF
 
+IF TEST_SHIPPLOT
+    JSR write_stringstars
+    EQUS "Ship plotting", 13, 0
     LDA #HI(shipdata)
     JSR writehex
     LDA #LO(shipdata)
@@ -147,7 +176,11 @@ ORG &3000
     LDA #32
     STA yangle
     JSR repship
+ENDIF
 
+IF TEST_SINCOS
+    JSR write_stringstars
+    EQUS "Sin/cosine", 13, 0
     LDA #0
     JSR repsc
     LDA #10
@@ -170,7 +203,11 @@ ORG &3000
     JSR repsc
     LDA #208
     JSR repsc
+ENDIF
 
+IF TEST_THRUSTADD
+    JSR write_stringstars
+    EQUS "Thrust addition", 13, 0
     LDA #0
     STA matha
     STA matha + 1
@@ -188,7 +225,11 @@ ORG &3000
     JSR repthadd
     LDA #LO(-32)
     JSR repthadd
+ENDIF
 
+IF TEST_MULXY
+    JSR write_stringstars
+    EQUS "Multiply X by Y", 13, 0
     LDX #64
     LDY #64
     JSR repmulxy
@@ -209,7 +250,11 @@ ORG &3000
     LDX #12
     LDY #34
     JSR repmulxy
+ENDIF
 
+IF TEST_HCALC
+    JSR write_stringstars
+    EQUS "Height calculation", 13, 0
     LDX #LO(platheight - 128)
     LDY #HI(platheight - 128)
     JSR rephc
@@ -250,6 +295,14 @@ ORG &3000
     LDY #1
     JSR rephc
 
+    LDX #48
+    LDY #2
+    JSR rephc
+ENDIF
+
+IF TEST_DEC16
+    JSR write_stringstars
+    EQUS "16-bit decimal"
     LDX #LO(12345)
     LDY #HI(12345)
     JSR repdec16
@@ -293,7 +346,11 @@ ORG &3000
     LDX #LO(1000)
     LDY #HI(1000)
     JSR repdec16
+ENDIF
 
+IF TEST_DEC24
+    JSR write_stringstars
+    EQUS "24-bit decimal", 13, 0
     LDX #LO(1000)
     LDY #HI(1000)
     LDA #1000 / 65536
@@ -323,7 +380,11 @@ ORG &3000
     LDY #HI(9165536)
     LDA #9165536 / 65536
     JSR repdec24
+ENDIF
 
+IF TEST_ANGLES
+    JSR write_stringstars
+    EQUS "Angles", 13, 0
     LDY #0
     LDA #0
     JSR repangle
@@ -360,13 +421,37 @@ ORG &3000
     LDA #63
     JSR repangle
 
-    LDY #160
-    LDA #32
-    JSR repangle
+ENDIF
 
+IF TEST_PARTICLES
+    JSR write_stringstars
+    EQUS "Particles", 13, 0
+    LDY #0
+    LDA #0
+    JSR repangle
+    
+    JSR write_string
+    EQUS "Player height=", 0
     LDA #1
     STA current_particle
-    STA land_height
+    LDA #1
+    STA player_y1
+    LDA #0
+    STA player_y
+    LDX #player_y
+    JSR writehex4
+    JSR osnewl
+
+    JSR hcalc
+    JSR write_string
+    EQUS "Land height=", 0
+    LDX #actual_landheight
+    JSR writehex4
+    JSR write_string
+    EQUS 13, "Ship height=", 0
+    LDA ship_height
+    JSR endhex
+
     JSR create_particle
     JSR reppart
     JSR move_particles
@@ -377,6 +462,47 @@ ORG &3000
     JSR reppart
     JSR move_particles
     JSR reppart
+ENDIF
+
+IF TEST_ZERODEPTH
+    JSR write_stringstars
+    EQUS "Effective zero depth", 13, 0
+    LDY #1
+    LDX #32
+    JSR depthY
+    LDA mathc + 2
+    JSR writehex
+    LDX #mathc
+    JSR writehex4
+    JSR osnewl
+
+    LDY #2
+    LDX #32
+    JSR depthY
+    LDA mathc + 2
+    JSR writehex
+    LDX #mathc
+    JSR writehex4
+    JSR osnewl
+
+    LDY #1
+    LDX #0
+    JSR depthY
+    LDA mathc + 2
+    JSR writehex
+    LDX #mathc
+    JSR writehex4
+    JSR osnewl
+
+    LDY #2
+    LDX #0
+    JSR depthY
+    LDA mathc + 2
+    JSR writehex
+    LDX #mathc
+    JSR writehex4
+    JSR osnewl
+ENDIF
 
 .loop
     JMP loop
@@ -417,6 +543,8 @@ ORG &3000
     LDA particle_dx
     JSR writehex
     JSR comma
+    LDA particle_ye
+    JSR writehex
     LDA particle_yh
     JSR writehex
     LDA particle_yl
@@ -434,7 +562,11 @@ ORG &3000
     JSR writehex
     JSR space
     JSR plot_particles
-    JMP endl
+    JMP osnewl
+    PHA
+    JSR comma
+    PLA
+    JMP endhex
 }
 
 .repdec16
@@ -445,7 +577,7 @@ ORG &3000
     JSR writehex4
     LDA #'='
     JSR oswrch
-    JSR bin2dec16;_fix3
+    JSR bin2dec16
     TAY
     ORA #'0'
     JSR oswrch
@@ -467,7 +599,7 @@ ORG &3000
     INX
     BNE rdloop
 .rddone
-    JMP endl
+    JMP osnewl
 }
 
 .repdec24
@@ -502,8 +634,12 @@ ORG &3000
     INX
     BNE rdloop
 .rddone
-    JMP endl
+    JMP osnewl
 }
+
+.hcalc
+    INCLUDE "hcalc.6502"
+    RTS
 
 .rephc
     STX player_y
@@ -513,7 +649,7 @@ ORG &3000
     LDA #'='
     JSR oswrch
 
-    INCLUDE "hcalc.6502"
+    JSR hcalc
 
     LDA ship_height
     JSR writehex
@@ -523,7 +659,10 @@ ORG &3000
     JSR space
     LDX #mathc
     JSR writehex4
-    JMP endl
+    JSR space
+    LDX #actual_landheight
+    JSR writehex4
+    JMP osnewl
 
 .repmulxy
     TXA
@@ -537,7 +676,7 @@ ORG &3000
     JSR mulxy
     LDX #mathc
     JSR writehex4
-    JMP endl
+    JMP osnewl
 
 .repthadd
     TAX
@@ -595,7 +734,7 @@ ORG &3000
 
     LDX #matha
     JSR writehex4
-    JMP endl
+    JMP osnewl
 
 .space
     LDA #' '
@@ -640,11 +779,7 @@ ORG &3000
     LDA mathc
 .endhex
     JSR writehex
-.endl
-    LDA #10
-    JSR oswrch
-    LDA #13
-    JMP oswrch
+    JMP osnewl
 
     INCLUDE "math.6502"
 
@@ -720,6 +855,92 @@ ORG &3000
     ROL A
     STA particle_zdir       ; Store this for the particle creation
     RTS
+
+.writedec
+{
+    CMP #0
+    BPL decpositive
+    EOR #255
+    CLC
+    ADC #1
+    PHA
+    LDA #'-'
+    JSR oswrch
+    PLA
+.decpositive
+    STA mathc
+    LDY #0
+    STY mathc + 1
+    JSR bin2dec16
+    LDX #0
+.rdloop
+    LDA digits, X
+    BMI rddone
+    ORA #&30
+    JSR oswrch
+    INX
+    BNE rdloop
+.rddone
+    RTS
+}
+
+.writedec4
+{
+    LDY 0, X
+    LDA 1, X
+    STA mathc + 1
+    STY mathc
+    BPL decpositive
+    TAX
+    LDA #'-'
+    JSR oswrch
+    LDA #255
+    SEC
+    SBC mathc
+    STA mathc
+    LDA #255
+    SBC mathc + 1
+    STA mathc + 1    
+.decpositive
+    JSR bin2dec16
+    LDX #0
+.rdloop
+    LDA digits, X
+    BMI rddone
+    ORA #&30
+    JSR oswrch
+    INX
+    BNE rdloop
+.rddone
+    RTS
+}
+
+.write_stringstars
+    JSR write_string
+    EQUS 13, "**TEST: ", 0
+
+.write_string
+{
+    PLA
+    STA readaddr + 1
+    PLA
+    STA readaddr + 2
+.writestr_loop
+    INC readaddr + 1
+    BNE readaddr
+    INC readaddr + 2
+.readaddr
+    LDA &1234
+    BEQ writestr_end
+    JSR osasci
+    JMP writestr_loop
+.writestr_end
+    INC readaddr + 1
+    BNE writestr_rts
+    INC readaddr + 2
+.writestr_rts
+    JMP (readaddr + 1)
+}
 
     INCLUDE "particles.6502"
 

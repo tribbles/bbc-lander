@@ -438,6 +438,7 @@ osbyte   = &fff4
 ; X is LO offset
 ; Y is HI offset
 ; A is the character
+; A, X and Y are corrupted
     STX write_font1 + 1
     STX write_font2 + 1
     TAX
@@ -451,6 +452,8 @@ osbyte   = &fff4
     STA write_font2 + 2
     TXA
 .plot_nextchar
+; A is the character
+; A and Y are corrupted (X is preserved)
     STA mathc
     ASL A
     ADC mathc
@@ -460,14 +463,14 @@ osbyte   = &fff4
     LDA #0
     ADC #HI(font)
     STA read_font + 2
-    LDX #5
+    LDY #5
 .read_font
-    LDA &ffff, X
+    LDA &ffff, Y
 .write_font1
-    STA &ffff, X
+    STA &ffff, Y
 .write_font2
-    STA &ffff, X
-    DEX
+    STA &ffff, Y
+    DEY
     BPL read_font
     LDA write_font1 + 1
     CLC
@@ -475,6 +478,31 @@ osbyte   = &fff4
     STA write_font1 + 1
     STA write_font2 + 1
     RTS
-    
+
+.plot_3digits
+{
+    JSR prepare_char
+    JSR bin2dec16
+    CMP #3
+    BCS p3d_write
+    TAX
+.p3d_zeroloop
+    LDA #0
+    JSR plot_nextchar
+    INX
+    CPX #3
+    BNE p3d_zeroloop
+.p3d_write
+    LDX #0
+.p3d_loop
+    LDA digits, X
+    BMI p3d_done
+    JSR plot_nextchar
+    INX
+    BNE p3d_loop
+.p3d_done
+    RTS
+}
+
 .font
     INCBIN  "font.bin"

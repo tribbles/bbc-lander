@@ -10,6 +10,8 @@ particle_count = 16
     SKIP particle_count
 .particle_yh
     SKIP particle_count
+.particle_ye
+    SKIP particle_count
 .particle_dy
     SKIP particle_count
 .particle_zl
@@ -21,21 +23,59 @@ particle_count = 16
 .particle_age
     SKIP particle_count
 
-MACRO MOVPART dirl, dirh, thrust, delta, negthrust
+MACRO MOVPARTXZ dirl, dirh, thrust, delta, negthrust
 {
     LDY #0
     LDA delta, X
     ASL A
     ASL A
-IF thrust != 0
+    BEQ nextmove    ; Delta is zero, so no movement required
+    BPL positive
+    DEY
+.positive
+    STY jtmp + 2
+    ASL A
+    ROL jtmp + 2
+    ASL A
+    ROL jtmp + 2
+    CLC
+    ADC dirl, X
+    STA jtmp + 1
+    LDA jtmp + 2
+    ADC dirh, X
+    STA jtmp + 2
+    LDY #0
+    LDA thrust
+    BPL thpos
+    DEY
+.thpos
 IF negthrust
+    STY jtmp
+    LDA jtmp + 1
     SEC
     SBC thrust
+    STA dirl, X
+    LDA jtmp + 2
+    SBC jtmp
+    STA dirh, X
 ELSE
     CLC
-    ADC thrust 
+    ADC jtmp + 1
+    STA dirl, X
+    TYA
+    ADC jtmp + 2
+    STA dirh, X
 ENDIF
-ENDIF
+.nextmove
+}
+ENDMACRO
+
+MACRO MOVPARTY dirl, dirh, dire, delta
+{
+    LDY #0
+    LDA delta, X
+    ASL A
+    ASL A
     BEQ nextmove    ; Delta is zero, so no movement required
     BPL positive
     DEY
@@ -51,6 +91,9 @@ ENDIF
     LDA jtmp + 2
     ADC dirh, X
     STA dirh, X
+    TYA
+    ADC dire, X
+    STA dire, X
 .nextmove
 }
 ENDMACRO
@@ -65,19 +108,64 @@ ENDMACRO
     STX current_particle
     LDA #16
     STA particle_age, X
-    LDA #0
-    STA particle_xh, X
-    STA particle_yh, X
-    STA particle_zh, X
-    STA particle_xl, X
-    STA particle_yl, X
-    STA particle_zl, X
+
+; Calculate X position
+    LDY #0
     LDA particle_xdir
     STA particle_dx, X
-    LDA particle_ydir
-    STA particle_dy, X
+    ASL A
+    ASL A
+    ASL A
+    BPL xpos
+    DEY
+.xpos
+    STA particle_xl, X
+    TYA
+    STA particle_xh, X
+
+; Calculate Z position
+    LDY #0
     LDA particle_zdir
     STA particle_dz, X
+    ASL A
+    ASL A
+    ASL A
+    BPL zpos
+    DEY
+.zpos
+    STA particle_zl, X
+    TYA
+    STA particle_zh, X
+
+; Calculate Y position
+    LDA #48
+    SEC
+    SBC player_y
+    STA particle_yh, X
+    LDA #0
+    SBC player_y + 1
+    STA particle_ye, X
+    ;LDA #0
+    ;STA particle_yl, X
+
+    LDY #0
+    LDA particle_ydir
+    STA particle_dy, X
+    ASL A
+    ASL A
+    ASL A
+    BMI ypos
+    DEY
+.ypos
+    CLC
+    ADC #0 ;particle_yl, X
+    STA particle_yl, X
+    TYA
+    ADC particle_yh, X
+    STA particle_yh, X
+    TYA
+    ADC particle_ye, X
+    STA particle_ye, X
     RTS
 }
 
@@ -86,11 +174,13 @@ ENDMACRO
     LDX #particle_count - 1
 .particle_loop
     LDA particle_age, X
-    BEQ particle_old
+    BNE particle_young
+    JMP particle_old
+.particle_young
     DEC particle_age, X
-    MOVPART particle_xl, particle_xh, xthrust, particle_dx, FALSE
-    MOVPART particle_yl, particle_yh, 0, particle_dy, FALSE
-    MOVPART particle_zl, particle_zh, zthrust, particle_dz, FALSE
+    MOVPARTXZ particle_xl, particle_xh, xthrust, particle_dx, FALSE
+    MOVPARTXZ particle_zl, particle_zh, zthrust, particle_dz, FALSE
+    MOVPARTY particle_yl, particle_yh, particle_ye, particle_dy
 .particle_old
     DEX
     BMI particles_done
@@ -135,10 +225,22 @@ ENDMACRO
     LDA particle_yh, X
 
     CLC
-    ADC land_height
-    BCS particle_offscreen
-    BMI particle_offscreen
+    ADC actual_landheight
     TAY
+    LDA particle_ye, X
+    ADC actual_landheight + 1
+;    PHP
+;    PHA
+;    JSR writehex
+;    TYA
+;    JSR writehex
+;    PLA
+;    PLP
+    BNE particle_offscreen
+    ;TYA
+    ;BCS particle_offscreen
+    ;BMI particle_offscreen
+    TYA
     ;LDA #'c'
     ;JSR oswrch
 
@@ -147,7 +249,7 @@ ENDMACRO
 
     LDA mathc + 1
     CLC
-    ADC #40        ; This is the height
+    ADC #land_offset + 8        ; This is the height
     TAY
     LDA mathc + 2
     ADC #0
@@ -160,9 +262,11 @@ ENDMACRO
     BPL particle_old
 
 .particle_offscreen
+    ;PHA
     LDX jtmp
     LDA #0
     STA particle_age, X
+    ;PLA
 .particle_old
     DEX
     BPL particle_loop
