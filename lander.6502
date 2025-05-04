@@ -680,9 +680,9 @@ ENDIF
     BEQ nolimit
     DEY
 .nolimit
-    LDY #0
-    STY xthrust
-    STY zthrust
+    ;LDY #0
+    ;STY xthrust
+    ;STY zthrust
     STY ythrust
 .nodec
 }

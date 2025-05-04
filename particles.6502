@@ -23,8 +23,10 @@ particle_count = 16
 
 MACRO MOVPART dirl, dirh, thrust, delta, negthrust
 {
-    LDA delta, X
     LDY #0
+    LDA delta, X
+    ASL A
+    ASL A
 IF thrust != 0
 IF negthrust
     SEC
@@ -38,10 +40,15 @@ ENDIF
     BPL positive
     DEY
 .positive
+    STY jtmp + 2
+    ASL A
+    ROL jtmp + 2
+    ASL A
+    ROL jtmp + 2
     CLC
     ADC dirl, X
     STA dirl, X
-    TYA
+    LDA jtmp + 2
     ADC dirh, X
     STA dirh, X
 .nextmove
@@ -81,12 +88,14 @@ ENDMACRO
     LDA particle_age, X
     BEQ particle_old
     DEC particle_age, X
-    MOVPART particle_xl, particle_xh, 0, particle_dx, FALSE
+    MOVPART particle_xl, particle_xh, xthrust, particle_dx, FALSE
     MOVPART particle_yl, particle_yh, 0, particle_dy, FALSE
-    MOVPART particle_zl, particle_zh, 0, particle_dz, FALSE
+    MOVPART particle_zl, particle_zh, zthrust, particle_dz, FALSE
 .particle_old
     DEX
-    BPL particle_loop
+    BMI particles_done
+    JMP particle_loop
+.particles_done
     RTS
 }
 
@@ -96,10 +105,17 @@ ENDMACRO
 .particle_loop
     LDA particle_age, X
     BEQ particle_old
+    ;LDA #'a'
+    ;JSR oswrch
     STX jtmp
     LDA particle_xh, X
     TAY
     LDA particle_zh, X
+    CLC
+    ADC #32
+    BMI particle_offscreen
+    CMP #63
+    BCS particle_offscreen
 
     STA jtmp + 1
     TAX
@@ -112,6 +128,8 @@ ENDMACRO
     ADC #0
     BNE particle_offscreen
     STX x0
+    ;LDA #'b'
+    ;JSR oswrch
 
     LDX jtmp
     LDA particle_yh, X
@@ -121,6 +139,8 @@ ENDMACRO
     BCS particle_offscreen
     BMI particle_offscreen
     TAY
+    ;LDA #'c'
+    ;JSR oswrch
 
     LDX jtmp + 1
     JSR depthY
@@ -132,6 +152,8 @@ ENDMACRO
     LDA mathc + 2
     ADC #0
     BNE particle_offscreen
+    ;LDA #'d'
+    ;JSR oswrch
     LDX x0
     JSR pixel
     LDX jtmp

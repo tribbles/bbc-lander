@@ -21,10 +21,13 @@ GUARD &90
 .pixelmask
     SKIP 2
 .x0
+.particle_xdir
     SKIP 1
 .y0
+.particle_ydir
     SKIP 1
 .x1
+.particle_zdir
     SKIP 1
 .y1
     SKIP 1
@@ -36,6 +39,9 @@ GUARD &90
     SKIP 1
 .player_y
     SKIP 2
+.zcoff
+.current_particle
+    SKIP 1
 platheight = 240
 
     INCLUDE "macros.6502"
@@ -318,8 +324,118 @@ ORG &3000
     LDA #9165536 / 65536
     JSR repdec24
 
+    LDY #0
+    LDA #0
+    JSR repangle
+
+    LDY #64
+    LDA #0
+    JSR repangle
+
+    LDY #208
+    LDA #0
+    JSR repangle
+
+    LDY #0
+    LDA #31
+    JSR repangle
+
+    LDY #64
+    LDA #31
+    JSR repangle
+
+    LDY #208
+    LDA #31
+    JSR repangle
+
+    LDY #0
+    LDA #63
+    JSR repangle
+
+    LDY #64
+    LDA #63
+    JSR repangle
+
+    LDY #208
+    LDA #63
+    JSR repangle
+
+    LDY #160
+    LDA #32
+    JSR repangle
+
+    LDA #1
+    STA current_particle
+    STA land_height
+    JSR create_particle
+    JSR reppart
+    JSR move_particles
+    JSR reppart
+    JSR move_particles
+    JSR reppart
+    JSR move_particles
+    JSR reppart
+    JSR move_particles
+    JSR reppart
+
 .loop
     JMP loop
+
+.repangle
+    STY yangle
+    STA zangle
+.repangle2
+{
+    JSR set_angle
+    LDA yangle
+    JSR writehex
+    JSR comma
+    LDA zangle
+    JSR writehex
+    JSR space
+    LDA particle_xdir
+    JSR writehex
+    JSR comma
+    LDA particle_ydir
+    JSR writehex
+    JSR comma
+    LDA particle_zdir
+    JMP endhex
+}
+
+.reppart
+{
+    LDA particle_age
+    JSR writehex
+    LDA #'-'
+    JSR oswrch
+    LDA particle_xh
+    JSR writehex
+    LDA particle_xl
+    JSR writehex
+    JSR plus
+    LDA particle_dx
+    JSR writehex
+    JSR comma
+    LDA particle_yh
+    JSR writehex
+    LDA particle_yl
+    JSR writehex
+    JSR plus
+    LDA particle_dy
+    JSR writehex
+    JSR comma
+    LDA particle_zh
+    JSR writehex
+    LDA particle_zl
+    JSR writehex
+    JSR plus
+    LDA particle_dz
+    JSR writehex
+    JSR space
+    JSR plot_particles
+    JMP endl
+}
 
 .repdec16
 {
@@ -333,8 +449,7 @@ ORG &3000
     TAY
     ORA #'0'
     JSR oswrch
-    LDA #'+'
-    JSR oswrch
+    JSR plus
     LDA #'0'
 .prefix_loop
     CPY #3
@@ -369,8 +484,7 @@ ORG &3000
     TAY
     ORA #'0'
     JSR oswrch
-    LDA #'+'
-    JSR oswrch
+    JSR plus
     LDA #'0'
 .prefix_loop
     CPY #7
@@ -489,6 +603,9 @@ ORG &3000
 .comma
     LDA #','
     JMP oswrch
+.plus
+    LDA #'+'
+    JMP oswrch
 
 .plot_line
     LDA x0
@@ -552,6 +669,59 @@ ORG &3000
 .less10
     ADC #'0'
     JMP oswrch
+
+.pixel
+    TXA
+    JSR writehex
+    JSR comma
+    TYA
+    JMP writehex
+
+.set_angle
+    LDA zangle
+    JSR sincos
+    STX zcoff
+    TYA
+    STA particle_ydir       ; Store this for the particle creation
+
+    LDA yangle
+    JSR sincos
+    STX mathb
+
+    LDX zcoff
+    JSR mulxy
+
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    TAY
+    DEY                  ; X direction is negative (for some reason!)
+    TYA
+    EOR #255
+    STA particle_xdir       ; Store this for the particle creation
+
+    LDY mathb
+    LDX zcoff
+    JSR mulxy
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    STA particle_zdir       ; Store this for the particle creation
+    RTS
+
+    INCLUDE "particles.6502"
 
     ALIGN 64
     INCLUDE "ship.6502"
