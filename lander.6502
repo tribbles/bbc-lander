@@ -117,28 +117,6 @@ ENDIF
 .ptrmap
     DIRCHARS
 
-.plot_tree
-    RTS
-
-.mark
-    LDX x1
-    LDY y1
-    DEX
-    DEX
-    JSR pixelp
-    LDX x1
-    INX
-    INX
-    JSR pixelp
-    LDX x1
-    INY
-    INY
-    JSR pixelp
-    LDY y1
-    DEY
-    DEY
-    JMP pixelp
-
 .tape
     EQUS "TAPE", 13
 
