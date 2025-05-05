@@ -1,0 +1,37 @@
+; Code that tells the player where the base is
+
+{
+    LDA #0
+    LDX player_x
+    CPX #32
+    BCS xover
+    ORA #1  ; Base is to the west
+    BNE checky
+.xover
+    CPX #33
+    BCC checky
+    ORA #2  ; Base is to the east
+.checky
+    LDX player_z
+    CPX #32
+    BCS yover
+    ORA #8  ; Base is to the north
+    BNE getchar
+.yover
+    CPX #33
+    BCC getchar
+    ORA #4  ; Base is to the south
+.getchar
+    TAX
+    LDA ptrmap, X
+    LDX #LO(direction_addr)
+    LDY #HI(direction_addr)
+    JSR plot_char
+}
+
+MACRO DIRCHARS
+    EQUB 11, 17, 13, 0
+    EQUB 15, 16, 14, 0
+    EQUB 19, 18, 12, 0
+    EQUB 0, 0, 0, 0
+ENDMACRO

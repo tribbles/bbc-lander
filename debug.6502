@@ -1,6 +1,6 @@
 IF DEBUG_VALUES
 {
-    LDA particle_xh
+    LDA player_x
     STA mathc
     LDA #0
     STA mathc + 1
@@ -10,7 +10,7 @@ IF DEBUG_VALUES
 }
 
 {
-    LDA particle_dx
+    LDA player_z
     STA mathc
     LDA #0
     STA mathc + 1

@@ -98,6 +98,7 @@ ENDIF
     INCLUDE "landplot.6502"
     INCLUDE "keyboard.6502"
     INCLUDE "thrustcalc.6502"
+    INCLUDE "baseptr.6502"
 
     JSR plot_ship
     JSR plot_particles
@@ -112,6 +113,9 @@ ENDIF
     SKIP displaysize * displaysize
 .treeheight
     SKIP displaysize
+
+.ptrmap
+    DIRCHARS
 
 .plot_tree
     RTS
