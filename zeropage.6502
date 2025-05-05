@@ -84,25 +84,25 @@ GUARD &90
     SKIP 1
 .treeh
     SKIP 1
-.xoffset    ; Fractional X offset (taken from bits 4..7 of mapx)
+.xoffset        ; Fractional X offset (taken from bits 4..7 of mapx)
     SKIP 1
-.zoffset    ; Fractional Z offset (taken from bits 4..7 of mapz)
+.zoffset        ; Fractional Z offset (taken from bits 4..7 of mapz)
     SKIP 1
-.mapx       ; Fractional X offset (bits 0..7 = fraction, 8..13 = map X, 14..15 = zero)
+.mapx           ; Fractional X offset (bits 0..7 = fraction, 8..13 = map X, 14..15 = zero)
     SKIP 1
 .player_x
     SKIP 1
-.mapz       ; Fractional Z offset (bits 0..7 = fraction, 8..13 = map Z, 14..15 = zero)
+.mapz           ; Fractional Z offset (bits 0..7 = fraction, 8..13 = map Z, 14..15 = zero)
     SKIP 1
 .player_z
     SKIP 1
-.heighty    ; Fractional Y offset
+.heighty        ; Fractional Y offset
     SKIP 1
 .player_y
     SKIP 1
 .player_y1
     SKIP 1
-.mapaddr    ; Pointer to the map address that we'll be reading
+.mapaddr        ; Pointer to the map address that we'll be reading
     SKIP 2
 .lastcol
     SKIP 1
@@ -110,6 +110,10 @@ GUARD &90
     SKIP 1
 .spinz
     SKIP 1
+.baselocation   ; Used to know if the player is above the base for ground collision calculation
+    SKIP 1
+.maxshipy
+    SKIP 1      ; The maximum Y coordinate that was calculated for the ship position; used for ground collision calculation
 
 .xspeed
     SKIP 1

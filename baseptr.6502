@@ -23,6 +23,7 @@
     ORA #4  ; Base is to the south
 .getchar
     TAX
+    STA baselocation
     LDA ptrmap, X
     LDX #LO(direction_addr)
     LDY #HI(direction_addr)

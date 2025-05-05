@@ -20,7 +20,7 @@ IF DEBUG_VALUES
 }
 
 {
-    LDA particle_xdir
+    LDA maxshipy
     STA mathc
     LDA #0
     STA mathc + 1

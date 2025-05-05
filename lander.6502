@@ -10,10 +10,10 @@ screen2     = &6800
 displaysize = 7
 centresize  = 3
 maxypos     = 24 * 8
-platheight  = 40
+platheight  = 44
 land_offset = 40
 
-DEBUG_VALUES = FALSE
+DEBUG_VALUES = TRUE
 
 ;map      = &1000 ; 64x64 map
 
@@ -85,6 +85,7 @@ ENDIF
 
     INCLUDE "landcalc.6502"
     INCLUDE "hud.6502"
+    INCLUDE "ground.6502"
 
     JSR move_particles
     JSR swap_banks

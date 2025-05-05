@@ -1,0 +1,10 @@
+; Code that checks to see if the player's hitting the ground
+
+{
+    LDA player_y1   ; Trivial check to see if the player is above the ground
+    BNE aboveground
+    LDA baselocation
+    BEQ overbase
+.overbase
+.aboveground
+}

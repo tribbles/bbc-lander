@@ -6,6 +6,8 @@
     LDA #255
     STA pixelmask
     STA pixelmask + 1
+    LDA #0
+    STA maxshipy
 ; 16 y angles
 ; 8 z angles
     LDA yangle      ; Runs from 0 to 255
@@ -54,12 +56,14 @@
     ADC #112
     STA x0
     TXA
+    AND #&f0
     LSR A
     LSR A
+    CMP maxshipy
+    BCC y0notover
+    STA maxshipy
+.y0notover
     LSR A
-    LSR A
-    ASL A
-    ;CLC
     ADC ship_height
     STA y0
     
@@ -68,16 +72,17 @@
     TAX
     AND #15
     ASL A
-    ;CLC
     ADC #112
     STA x1
     TXA
+    AND #&f0
     LSR A
     LSR A
+    CMP maxshipy
+    BCC y1notover
+    STA maxshipy
+.y1notover
     LSR A
-    LSR A
-    ASL A
-    ;CLC
     ADC ship_height
     STA y1
     JSR plot_line

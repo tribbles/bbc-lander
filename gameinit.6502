@@ -17,7 +17,7 @@
     STA yangle
 
     LDA #32
-    LDA #0
+    LDA #32
     STA player_x
     STA player_z
     LDA #127
