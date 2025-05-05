@@ -451,6 +451,12 @@ IF TEST_PARTICLES
     EQUS 13, "Ship height=", 0
     LDA ship_height
     JSR endhex
+    LDA #94
+    STA xthrust
+    JSR write_string
+    EQUS "X thrust=", 0
+    LDA xthrust
+    JSR endhex
 
     JSR create_particle
     JSR reppart

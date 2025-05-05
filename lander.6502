@@ -11,6 +11,8 @@ maxypos     = 24 * 8
 platheight  = 40
 land_offset = 40
 
+DEBUG_VALUES = FALSE
+
 ;map      = &1000 ; 64x64 map
 
     GUARD    screen1
@@ -107,8 +109,9 @@ ENDIF
 
     INCLUDE "hcalc.6502"
 
+IF DEBUG_VALUES
 {
-    LDA ship_height
+    LDA particle_xh
     STA mathc
     LDA #0
     STA mathc + 1
@@ -118,7 +121,7 @@ ENDIF
 }
 
 {
-    LDA land_height
+    LDA particle_dx
     STA mathc
     LDA #0
     STA mathc + 1
@@ -128,14 +131,25 @@ ENDIF
 }
 
 {
-    LDA player_y
+    LDA particle_xdir
     STA mathc
-    LDA player_y + 1
+    LDA #0
     STA mathc + 1
     LDX #192 + 2
     LDY #23
     JSR plot_3digits
 }
+
+{
+    LDA xthrust
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #192 + 32 + 2
+    LDY #23
+    JSR plot_3digits
+}
+ENDIF
 
 ; Loop 1 - calculate the X and Y coordinates of the map
 {

@@ -29,43 +29,45 @@ MACRO MOVPARTXZ dirl, dirh, thrust, delta, negthrust
     LDA delta, X
     ASL A
     ASL A
-    BEQ nextmove    ; Delta is zero, so no movement required
-    BPL positive
+    BPL deltapositive
     DEY
-.positive
+.deltapositive
     STY jtmp + 2
     ASL A
     ROL jtmp + 2
     ASL A
     ROL jtmp + 2
-    CLC
-    ADC dirl, X
     STA jtmp + 1
-    LDA jtmp + 2
-    ADC dirh, X
-    STA jtmp + 2
+    CLC
     LDY #0
     LDA thrust
-    BPL thpos
+    BPL thrustpositive
     DEY
-.thpos
+.thrustpositive
 IF negthrust
-    STY jtmp
-    LDA jtmp + 1
-    SEC
-    SBC thrust
-    STA dirl, X
-    LDA jtmp + 2
-    SBC jtmp
-    STA dirh, X
+    CLC
+    ADC jtmp + 1
+    STA jtmp + 1
+    TYA
+    ADC jtmp + 2
+    STA jtmp + 2
 ELSE
+    SEC
+    SBC jtmp + 1
+    STA jtmp + 1
+    TYA
+    SBC jtmp + 2
+    STA jtmp + 2
+ENDIF
+    ORA jtmp + 1
+    BEQ nextmove
+    LDA dirl, X
     CLC
     ADC jtmp + 1
     STA dirl, X
-    TYA
+    LDA dirh, X
     ADC jtmp + 2
     STA dirh, X
-ENDIF
 .nextmove
 }
 ENDMACRO
@@ -178,8 +180,8 @@ ENDMACRO
     JMP particle_old
 .particle_young
     DEC particle_age, X
-    MOVPARTXZ particle_xl, particle_xh, xthrust, particle_dx, FALSE
-    MOVPARTXZ particle_zl, particle_zh, zthrust, particle_dz, FALSE
+    MOVPARTXZ particle_xl, particle_xh, xthrust, particle_dx, TRUE
+    MOVPARTXZ particle_zl, particle_zh, zthrust, particle_dz, TRUE
     MOVPARTY particle_yl, particle_yh, particle_ye, particle_dy
 .particle_old
     DEX
