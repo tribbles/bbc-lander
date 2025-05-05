@@ -27,7 +27,16 @@
     LDA shipdata + 1, X
     STA jtmp + 1   ; jtmp is pointing to the actual address of the ship data
     LDY #0
-    LDA (jtmp), Y  ; A is the number of vertices
+    LDA (jtmp), Y  ; A is the number of vertices in bottom 4 bits, and the maximum height in top 4 bits
+    TAY
+    ;AND #&f0
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA maxshipy
+    TYA
+    AND #15
     STA mathc
     SEC
     ADC jtmp
@@ -59,10 +68,6 @@
     AND #&f0
     LSR A
     LSR A
-    CMP maxshipy
-    BCC y0notover
-    STA maxshipy
-.y0notover
     LSR A
     ADC ship_height
     STA y0
@@ -78,10 +83,6 @@
     AND #&f0
     LSR A
     LSR A
-    CMP maxshipy
-    BCC y1notover
-    STA maxshipy
-.y1notover
     LSR A
     ADC ship_height
     STA y1
@@ -91,7 +92,6 @@
     BNE vertexloop
     RTS
 }
-
 
 .fixship
 {

@@ -101,11 +101,14 @@ namespace ShipMaker
             {
                 _tempData[byteOffset++] = (byte)((usedPoints[v[0]] << 4) | usedPoints[v[1]]);
             }
+            byte maxh = 0;
             for (int i = 0; i < xPoints.Count; i++)
             {
-                _tempData[byteOffset++] = (byte)(ToCoordinate(xPoints[i]) | (ToCoordinate(yPoints[i]) << 4));
+                var yc = ToCoordinate(yPoints[i]);
+                maxh = Math.Max(maxh, yc);
+                _tempData[byteOffset++] = (byte)(ToCoordinate(xPoints[i]) | (yc << 4));
             }
-            _tempData[0] = (byte)(vertices.Count + 0);
+            _tempData[0] = (byte)(vertices.Count | (Math.Max(maxh - 7, 0) << 4));
             byte[] actualData = new byte[byteOffset];
             Array.Copy(_tempData, actualData, byteOffset);
             return actualData;

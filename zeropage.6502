@@ -2,7 +2,6 @@ ORG &0
 
 GUARD &90
 
-.digits
 .x0
     SKIP 1
 .y0
@@ -23,14 +22,10 @@ GUARD &90
     SKIP 1
 .pllast
     SKIP 1
-.bits
-    SKIP 8
-.leftbits
-    SKIP 8
-.rightbits
-    SKIP 8
 .pixelmask
     SKIP 2
+.digits
+    SKIP 8
 
 .current_screen_hi
     SKIP 1
@@ -67,10 +62,10 @@ GUARD &90
 .maths
     SKIP 1
 
-.xlptr
+.interp_tmp
     SKIP 2
-.ylptr
-    SKIP 2
+;.ylptr
+;    SKIP 2
 .offset
     SKIP 1
 .ocoord
@@ -114,6 +109,8 @@ GUARD &90
     SKIP 1
 .maxshipy
     SKIP 1      ; The maximum Y coordinate that was calculated for the ship position; used for ground collision calculation
+.lowshipy
+    SKIP 1      ; This is the ship's position in map coordinates, taking into account the maximum pixel Y
 
 .xspeed
     SKIP 1
@@ -138,8 +135,6 @@ GUARD &90
     SKIP 1
 .actual_landheight  ; This is used for particle calculation
     SKIP 2
-.map_height     ; The height at the player's current point on the map
-    SKIP 1
 
 .ycoff
     SKIP 1

@@ -300,29 +300,15 @@ fuel_addr = &01d0
     JMP vline
 }
 
-.init_bits
-{
-    LDX #7
-.initloop
-    LDA initbp, X
-    STA bits, X
-    LDA initleft, X
-    STA leftbits, X
-    LDA initright, X
-    STA rightbits, X
-    DEX
-    BPL initloop
-    RTS
-.initbp
+    ALIGN 8
+.bits
     EQUB 128, 64, 32, 16, 8, 4, 2, 1
-    ;EQUB 1, 2, 4, 8, 16, 32, 64, 128
-.initleft
+.leftbits
     EQUB &80, &c0, &e0, &f0, &f8, &fc, &fe, &ff
-    ;EQUB &ff, &fe, &fc, &f8, &f0, &e0, &c0, &80
-.initright
-    ;EQUB &01, &03, &07, &0f, &1f, &3f, &7f, &ff
+.rightbits
     EQUB &ff, &7f, &3f, &1f, &0f, &07, &03, &01
-}
+.shl6
+    EQUB 0, 64, 128, 192
 
 .set_colour
 {

@@ -38,3 +38,6 @@
     STA current_fuel + 1
     LDA #1
     STA update_fuel
+
+    LDA #0
+    STA maxshipy

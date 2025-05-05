@@ -183,6 +183,7 @@
     THRUSTDEC xthrust
     THRUSTDEC zthrust
 
+; Gravity calculation
     LDY ythrust
     CPY #LO(-95)
     BEQ nodec

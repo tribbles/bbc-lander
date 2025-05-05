@@ -1,6 +1,7 @@
 IF DEBUG_VALUES
 {
-    LDA player_x
+    ;LDA player_x
+    LDA x0
     STA mathc
     LDA #0
     STA mathc + 1
@@ -10,7 +11,8 @@ IF DEBUG_VALUES
 }
 
 {
-    LDA player_z
+    ;LDA mapx
+    LDA x1
     STA mathc
     LDA #0
     STA mathc + 1
@@ -20,7 +22,9 @@ IF DEBUG_VALUES
 }
 
 {
-    LDA maxshipy
+    ;LDA maxshipy
+    ;LDA player_z
+    LDA y0
     STA mathc
     LDA #0
     STA mathc + 1
@@ -30,7 +34,10 @@ IF DEBUG_VALUES
 }
 
 {
-    LDA xthrust
+    ;LDA xthrust
+    ;LDA mapz
+    ;LDA y1
+    LDA lowshipy
     STA mathc
     LDA #0
     STA mathc + 1

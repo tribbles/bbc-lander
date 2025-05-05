@@ -5,14 +5,15 @@ osasci = &ffe3
 TEST_MULTIPLY = FALSE
 TEST_SHIPPLOT = FALSE
 TEST_SINCOS = FALSE
-TEST_HCALC = TRUE
+TEST_HCALC = FALSE
 TEST_THRUSTADD = FALSE
 TEST_MULXY = FALSE
 TEST_DEC16 = FALSE
 TEST_DEC24 = FALSE
 TEST_ANGLES = FALSE
-TEST_PARTICLES = TRUE
+TEST_PARTICLES = FALSE
 TEST_ZERODEPTH = FALSE
+TEST_LINEAR = TRUE
 
 ORG &70
 
@@ -48,6 +49,8 @@ GUARD &90
 .y1
     SKIP 1
 .zthrust
+.rand_seed
+.maxshipy
 .xlptr
     SKIP 2
 .ship_height
@@ -61,6 +64,7 @@ GUARD &90
 .zcoff
 .current_particle
     SKIP 1
+.interp_tmp
 .actual_landheight
     SKIP 2
 platheight  = 40
@@ -420,7 +424,6 @@ IF TEST_ANGLES
     LDY #208
     LDA #63
     JSR repangle
-
 ENDIF
 
 IF TEST_PARTICLES
@@ -510,8 +513,67 @@ IF TEST_ZERODEPTH
     JSR osnewl
 ENDIF
 
+IF TEST_LINEAR
+    LDX #0
+    LDY #63
+    LDA #0
+    JSR replinear
+
+    LDX #0
+    LDY #63
+    LDA #64
+    JSR replinear
+
+    LDX #0
+    LDY #63
+    LDA #128
+    JSR replinear
+
+    LDX #0
+    LDY #63
+    LDA #192
+    JSR replinear
+
+    LDX #63
+    LDY #0
+    LDA #0
+    JSR replinear
+
+    LDX #63
+    LDY #0
+    LDA #64
+    JSR replinear
+
+    LDX #63
+    LDY #0
+    LDA #128
+    JSR replinear
+
+    LDX #63
+    LDY #0
+    LDA #192
+    JSR replinear
+ENDIF
+
 .loop
     JMP loop
+
+.replinear
+    PHA
+    PHA
+    TXA
+    JSR writehex
+    JSR comma
+    TYA
+    JSR writehex
+    JSR comma
+    PLA
+    JSR writehex
+    LDA #'='
+    JSR oswrch
+    PLA
+    JSR linear_interpolation
+    JMP endhex
 
 .repangle
     STY yangle

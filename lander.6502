@@ -10,7 +10,7 @@ screen2     = &6800
 displaysize = 7
 centresize  = 3
 maxypos     = 24 * 8
-platheight  = 44
+platheight  = 42
 land_offset = 40
 
 DEBUG_VALUES = TRUE
@@ -30,7 +30,7 @@ DEBUG_VALUES = TRUE
     LDY #HI(tape)
     JSR oscli
     JSR set_mode
-    JSR init_bits
+    ;JSR init_bits
     JSR init_screen
     JSR clear_bank
     JSR swap_banks
@@ -79,13 +79,13 @@ ENDIF
 
     INCLUDE "hcalc.6502"
 
-IF (DEBUG_VALUES)
-    INCLUDE "debug.6502"
-ENDIF
-
     INCLUDE "landcalc.6502"
     INCLUDE "hud.6502"
     INCLUDE "ground.6502"
+
+IF (DEBUG_VALUES)
+    INCLUDE "debug.6502"
+ENDIF
 
     JSR move_particles
     JSR swap_banks

@@ -2,9 +2,127 @@
 
 {
     LDA player_y1   ; Trivial check to see if the player is above the ground
-    BNE aboveground
-    LDA baselocation
-    BEQ overbase
+    BEQ belowground
+.ag1
+    JMP aboveground
+.belowground
+    LDA #50
+    SEC
+    SBC player_y
+    CLC
+    ADC maxshipy
+    BMI ag1
+    STA lowshipy
+    ;LDA baselocation
+    ;BEQ overbase
+    LDA mapx
+    SEC
+    SBC #127
+    STA mathc
+    LDA player_x
+    SBC #0
+    AND #63
+    STA x0
+    LDA mapz
+    SEC
+    SBC #127
+    STA mathc + 1
+    LDA player_z
+    SBC #0
+    AND #63
+    STA y0
+    TAY
+    LSR A
+    LSR A
+    CLC
+    ADC #HI(map)
+    STA mapread1 + 2
+    STA mapread2 + 2
+    TYA
+    AND #3
+    TAX
+    LDA shl6, X
+    CLC
+    ADC #LO(map)
+    STA mapread1 + 1
+    STA mapread2 + 1
+    INY
+    TYA
+    AND #63
+    TAY
+    LSR A
+    LSR A
+    CLC
+    ADC #HI(map)
+    STA mapread3 + 2
+    STA mapread4 + 2
+    TYA
+    AND #3
+    TAX
+    LDA shl6, X
+    CLC
+    ADC #LO(map)
+    STA mapread3 + 1
+    STA mapread4 + 1
+    LDX x0
+.mapread1
+    LDA &1234, X
+    AND #63
+    STA x0
+.mapread3
+    LDA &1234, X
+    AND #63
+    STA x1
+    INX
+    TXA
+    AND #63
+    TAX
+.mapread2
+    LDA &1234, X
+    AND #63
+    STA y0
+.mapread4
+    LDA &1234, X
+    AND #63
+    STA y1
+    CMP y0
+    BNE complex_compare
+    CMP x0
+    BNE complex_compare
+    CMP x1
+    BNE complex_compare
+.simple_compare
+    LDA lowshipy
+    CMP y0
+    BCC aboveground
+    
+.underground
+    LDA #0
+    STA ythrust
+    STA xthrust
+    STA zthrust
+    BEQ aboveground
+
+.complex_compare
+    LDX x0
+    LDY x1
+    LDA mathc
+    JSR linear_interpolation
+    STA x0
+    LDX y0
+    LDY y1
+    LDA mathc
+    JSR linear_interpolation
+    TAY
+    LDX x0
+    LDA mathc + 1
+    JSR linear_interpolation
+    STX x0
+
+    LDA lowshipy
+    CMP x0
+    BCS underground
+
 .overbase
 .aboveground
 }

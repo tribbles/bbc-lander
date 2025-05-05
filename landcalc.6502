@@ -44,15 +44,12 @@
     CLC
     ADC #centresize ; Map centre Z
     AND #63
+    TAY
+    AND #3
     TAX
-    ASL A
-    ASL A
-    ASL A
-    ASL A
-    ASL A
-    ASL A
+    LDA shl6, X
     STA mapread + 1 ; A little bit of self-modifying code...
-    TXA
+    TYA
     LSR A
     LSR A
     CLC
@@ -102,14 +99,6 @@
     LDA map, Y
     TAY
     AND #192
-    LDX jtmp
-    CPX #centresize
-    BNE notcentre
-    LDX jtmp + 1
-    CPX #centresize
-    BNE notcentre
-    STA map_height
-.notcentre
     LDX offset
     STA collocs, X
     TYA

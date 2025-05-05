@@ -325,6 +325,54 @@ ENDIF
     RTS
 }
 
+.linear_interpolation
+; Perform a linear interpolation of numbers from 0..63
+; X = first number
+; Y = second number
+; A = 0 == full first number, 255 = most 2nd number
+; Returns A as the interpolated number
+{
+    STX interp_tmp
+    CPY interp_tmp
+    BEQ no_interpolation
+    AND #192
+    BEQ no_interpolation
+    BMI last_quadrants
+; This is 3/4 X, and 1/4 Y
+    TXA
+    ASL A
+    ADC interp_tmp ; x3
+    STY interp_tmp
+    ADC interp_tmp
+    LSR A
+    LSR A
+    RTS
+
+.no_interpolation
+    TXA
+    RTS
+
+.last_quadrants
+    AND #64
+    BEQ second_quadrant
+; This is 1/4 X and 3/4 Y
+    TYA
+    STA interp_tmp + 1
+    ASL A
+    ADC interp_tmp + 1 ; x3
+    ADC interp_tmp
+    LSR A
+    LSR A
+    RTS
+.second_quadrant
+; Half and half
+    TYA
+    CLC
+    ADC interp_tmp
+    LSR A
+    RTS
+}
+
 ALIGN    64
 divmaxx = 50000
 divmaxy = 32768
