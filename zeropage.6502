@@ -165,3 +165,6 @@ GUARD &90
     SKIP 1
 .particle_zdir
     SKIP 1
+
+.rand_seed
+    SKIP 1

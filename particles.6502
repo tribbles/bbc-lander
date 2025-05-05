@@ -168,6 +168,34 @@ ENDMACRO
     TYA
     ADC particle_ye, X
     STA particle_ye, X
+    RAND8
+    BMI noxadj
+    AND #1
+    TAY
+    LDA particle_dx, X
+    SEC
+    SBC #4
+    DEY
+    BNE noaddx8
+    CLC
+    ADC #8
+.noaddx8
+    STA particle_dx, X
+.noxadj
+    RAND8
+    BMI nozadj
+    AND #1
+    TAY
+    LDA particle_dz, X
+    SEC
+    SBC #4
+    DEY
+    BNE noaddz8
+    CLC
+    ADC #8
+.noaddz8
+    STA particle_dz, X
+.nozadj
     RTS
 }
 

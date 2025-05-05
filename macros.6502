@@ -39,3 +39,14 @@ MACRO THRUSTADD addr
 }
 ENDMACRO
 
+MACRO RAND8
+; Taken from http://www.6502.org/users/mycorner/6502/code/prng.html
+{
+    LDA rand_seed
+    ASL A
+    BCC no_eor
+    EOR #&cf
+.no_eor
+    STA rand_seed
+}
+ENDMACRO

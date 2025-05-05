@@ -104,6 +104,7 @@ ENDIF
     STA current_fuel + 1
     LDA #1
     STA update_fuel
+    STA rand_seed
 
 .endforever
 
