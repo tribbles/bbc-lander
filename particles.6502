@@ -170,29 +170,27 @@ ENDMACRO
     STA particle_ye, X
     RAND8
     BMI noxadj
-    AND #1
+    AND #64
     TAY
-    LDA particle_dx, X
-    SEC
-    SBC #4
+    LDA #LO(-4)
     DEY
-    BNE noaddx8
-    CLC
-    ADC #8
+    BMI noaddx8
+    LDA #4
 .noaddx8
+    CLC
+    ADC particle_dx, X
     STA particle_dx, X
 .noxadj
-    RAND8
+    LDA rand_seed
+    ASL A
+    ASL A
     BMI nozadj
-    AND #1
+    AND #64
     TAY
-    LDA particle_dz, X
-    SEC
-    SBC #4
+    LDA #LO(-4)
     DEY
-    BNE noaddz8
-    CLC
-    ADC #8
+    BMI noaddz8
+    LDA #4
 .noaddz8
     STA particle_dz, X
 .nozadj
