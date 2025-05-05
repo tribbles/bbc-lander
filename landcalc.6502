@@ -1,0 +1,159 @@
+; Land calculation routine
+
+; Loop 1 - calculate the X and Y coordinates of the map
+{
+    LDA #0
+    STA offset     ; We start off at this point
+
+    LDA mapx
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA xoffset     ; Calculate the fractional X map display (0..7)
+
+    LDA mapz
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    STA zoffset     ; Calculate the fractional Z map display (0..7)
+
+    LDA #displaysize - 1
+    STA jtmp        ; This is the current Z coordinate
+.zloop
+    LDA jtmp        ; (0..<size>)
+    ASL A
+    ASL A
+    ASL A           ; (0..<size>*8)
+    ORA zoffset     ; Add in the fractional offset
+    STA jtmp + 2
+; Get the tree height
+    TAY
+    LDA theight, Y
+    LDY jtmp
+    LSR A
+    STA treeheight, Y
+
+; Calculate the map position
+    LDA mapz + 1
+    SEC
+    SBC jtmp
+    CLC
+    ADC #centresize ; Map centre Z
+    AND #63
+    TAX
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    STA mapread + 1 ; A little bit of self-modifying code...
+    TXA
+    LSR A
+    LSR A
+    CLC
+    ADC #HI(map)
+    STA mapread + 2 ; And a bit more...
+
+    LDA #displaysize - 1
+    STA jtmp + 1   ; This is the current X coordinate
+.xloop
+    LDA jtmp + 1
+    ASL A
+    ASL A
+    ASL A
+    ADC xoffset    ; This is the fractional offset (carry is clear; jtmp+1 is a maximum of 6)
+    SEC
+    SBC #centresize + centresize * 8 ; This moves the centre of the display
+    TAY
+    LDX jtmp + 2
+    JSR depthX
+    
+    LDA mathc + 1
+    CLC
+    ADC #127
+    TAX
+    LDA mathc + 2
+    ADC #0
+    BEQ onscreenx
+    BMI toleft
+    LDX #255
+    BNE onscreenx
+.toleft
+    LDX #0
+.onscreenx
+    TXA
+    LDY offset
+    STA xlocs, Y
+
+    ; Now we add in the map X offset
+    LDA mapx + 1
+    SEC
+    SBC jtmp + 1
+    CLC
+    ADC #centresize ; Centre it
+    AND #63
+    TAY
+.mapread
+    LDA map, Y
+    TAY
+    AND #192
+    LDX jtmp
+    CPX #centresize
+    BNE notcentre
+    LDX jtmp + 1
+    CPX #centresize
+    BNE notcentre
+    STA map_height
+.notcentre
+    LDX offset
+    STA collocs, X
+    TYA
+    AND #63        ; Remove trees and water / platform indicators
+    CLC
+    ADC land_height
+    BCS over_height
+    BPL under_height
+.over_height
+    LDA #127
+.under_height
+    TAY
+
+    LDX jtmp + 2
+    JSR depthY
+    
+    LDA mathc + 1
+    CLC
+    ADC #land_offset        ; This is the height offset
+    TAX
+    LDA mathc + 2
+    ADC #0
+    BEQ onscreeny
+    BMI above
+    LDA #maxypos
+    BNE sety
+.above
+    LDX #0
+.onscreeny
+    TXA
+    CMP #maxypos
+    BCC sety
+    LDA #maxypos
+.sety
+    LDY offset
+    STA ylocs, Y
+    INC offset     ; Go on to the next coordinate
+    
+    DEC jtmp + 1
+    BMI alldonex
+    JMP xloop
+.alldonex
+    DEC jtmp
+    BMI alldone
+    JMP zloop
+.alldone
+}

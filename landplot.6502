@@ -1,0 +1,208 @@
+; Land plotting routine
+
+; Loop 2 - draw the horizontal lines
+{
+    STA lastcol
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
+.xloop
+    LDA #displaysize - 2
+    STA jtmp + 1
+    LDY offset
+    LDA xlocs, Y
+    STA ocoord
+    LDA ylocs, Y
+    STA ocoord + 1
+    INC offset
+.zloop
+    LDA ocoord
+    STA x0
+    LDA ocoord + 1
+    STA y0
+    LDY offset
+    LDA xlocs, Y
+    STA x1
+    STA ocoord
+    LDA ylocs, Y
+    STA y1
+    STA ocoord + 1
+    LDA collocs, Y
+    AND #64
+    CMP lastcol
+    BEQ colsame
+    STA lastcol
+    CMP #0
+    BNE water
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    BNE colsame
+.water
+    LDA #&aa
+    STA pixelmask
+    LSR A
+    STA pixelmask + 1
+.colsame
+    INC offset
+    JSR plot_line
+    DEC jtmp + 1
+    BPL zloop
+    DEC jtmp
+    BPL xloop
+}
+
+; Loop 3 - draw the vertical linzes
+{
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
+.xloop
+    LDA #displaysize - 2
+    STA jtmp + 1
+    LDY offset
+    LDA xlocs, Y
+    STA ocoord
+    LDA ylocs, Y
+    STA ocoord + 1
+    LDA offset
+    CLC
+    ADC #displaysize
+    STA offset
+.zloop
+    LDA ocoord
+    STA x0
+    LDA ocoord + 1
+    STA y0
+    LDY offset
+    LDA xlocs, Y
+    STA x1
+    STA ocoord
+    LDA ylocs, Y
+    STA y1
+    STA ocoord + 1
+    LDA collocs, Y
+    AND #64
+    CMP lastcol
+    BEQ colsame
+    STA lastcol
+    CMP #0
+    BNE water
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    BNE colsame
+.water
+    LDA #&aa
+    STA pixelmask
+    LSR A
+    STA pixelmask + 1
+.colsame
+    LDA offset
+    CLC
+    ADC #displaysize
+    STA offset
+    JSR plot_line
+    DEC jtmp + 1
+    BPL zloop
+    LDA offset
+    SEC
+    SBC #displaysize * displaysize - 1
+    STA offset
+    DEC jtmp
+    BPL xloop
+}
+
+; Loop 4 - trees
+{
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+
+    LDA #displaysize - 1
+    STA jtmp
+    LDA #0
+    STA offset
+.xloop
+    LDA #displaysize - 1
+    STA jtmp + 1
+.zloop
+    LDY offset
+    LDA collocs, Y
+    BPL notree
+
+    LDA xlocs, Y
+    STA x1
+    STA x0
+    STA treecx
+    LDA ylocs, Y
+    STA y1
+    STA treey
+
+; Plot the trunk
+    LDX jtmp
+    LDA treeheight, X
+    STA treeh
+    LDA y1
+    SEC
+    SBC treeh
+.treeokay
+    STA y0
+    STA treey
+    JSR plot_line
+
+; Plot the base of the triangle
+    LDA treey
+    STA y1
+    LDA treecx
+    SEC
+    SBC treeh
+    BCS left
+    LDA #0
+.left
+    STA x0
+    STA ocoord
+    LDA treecx
+    CLC
+    ADC treeh
+    BCC right
+    LDA #255
+.right
+    STA x1
+    STA treerx
+    JSR plot_line
+
+; Plot the left of the triangle
+    LDA treelx
+    STA x1
+    LDA treecx
+    STA x0
+    LDA treey
+    STA y1
+    SEC
+    SBC treeh
+    SBC treeh
+    STA y0
+    STA treeh       ; Don't need the height any more
+    JSR plot_line
+; Plot the right of the triangle
+    LDA treecx
+    STA x0
+    LDA treerx
+    STA x1
+    LDA treey
+    STA y1
+    LDA treeh
+    STA y0
+    JSR plot_line
+.notree
+    INC offset
+    DEC jtmp + 1
+    BPL zloop
+    DEC jtmp
+    BMI done
+    JMP xloop
+.done
+}

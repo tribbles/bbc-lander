@@ -1,0 +1,202 @@
+; Keyboard handler
+
+; Check Y rotation keys
+{
+    LDA #&81
+    LDY #&ff
+    LDX #&9e        ; Z
+    JSR osbyte
+    BCC notleft
+    LDY spiny
+    CPY #7
+    BEQ notleft
+    INY
+    CPY #7
+    BEQ nomoreleft
+    INY
+.nomoreleft
+    STY spiny
+.notleft
+
+    LDA #&81
+    LDY #&ff
+    LDX #&bd        ; X
+    JSR osbyte
+    BCC notright
+    LDY spiny
+    CPY #LO(-7)
+    BEQ notright
+    DEY
+    CPY #LO(-7)
+    BEQ nomoreright
+    DEY
+.nomoreright
+    STY spiny
+.notright
+
+    LDA spiny
+    BEQ spinzero
+    BMI negspin
+    DEC spiny
+    BPL spinzero
+.negspin
+    INC spiny
+.spinzero
+    LDA yangle
+    CLC
+    ADC spiny
+    ADC spiny
+    STA yangle
+}
+
+; Check Z rotation keys
+{
+    LDA #&81
+    LDY #&ff
+    LDX #&b9        ; K
+    JSR osbyte
+    BCC notup
+    LDY spinz
+    CPY #15
+    BEQ notup
+    INY
+    CPY #15
+    BEQ nomoreup
+    INY
+.nomoreup
+    STY spinz
+.notup
+
+    LDA #&81
+    LDY #&ff
+    LDX #&9a        ; M
+    JSR osbyte
+    BCC notdown
+    LDY spinz
+    CPY #LO(-15)
+    BEQ notdown
+    DEY
+    CPY #LO(-15)
+    BEQ nomoredown
+    DEY
+.nomoredown
+    STY spinz
+.notdown
+
+    LDA spinz
+    BEQ spinzero
+    BMI negspin
+    DEC spinz
+    BPL spinzero
+.negspin
+    INC spinz
+.spinzero
+    LDA zangle
+    CLC
+    ADC spinz
+    BPL limitz0
+    LDA #0
+.limitz0
+    CMP #63
+    BCC limitz1
+    LDA #63
+.limitz1
+    STA zangle
+}
+
+; Check thrust
+{
+    LDA player_y + 1
+    AND #&fe
+    BEQ canthrust
+    JMP nothrust         ; Not enough oxygen!
+.canthrust
+    LDA current_fuel
+    ORA current_fuel + 1
+    BNE enoughfuel
+    JMP nothrust
+.enoughfuel
+    LDA #&81
+    LDX #LO(-99)        ; Space
+    LDY #&ff
+    JSR osbyte
+    BCS thrust
+    JMP nothrust
+.thrust
+    LDA current_fuel
+    SED
+    SEC
+    SBC #1
+    STA current_fuel
+    LDA current_fuel + 1
+    SBC #0
+    STA current_fuel + 1
+    CLD
+    INC update_fuel
+    
+    LDA zangle
+    JSR sincos
+    STX zcoff
+    TYA
+    STA particle_ydir       ; Store this for the particle creation
+    THRUSTADD ythrust
+
+    LDA yangle
+    JSR sincos
+    STX mathb
+
+    LDX zcoff
+    JSR mulxy
+
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    TAY
+    DEY                  ; X direction is negative (for some reason!)
+    TYA
+    EOR #255
+    STA particle_xdir       ; Store this for the particle creation
+    THRUSTADD xthrust
+
+    LDY mathb
+    LDX zcoff
+    JSR mulxy
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    ASL mathc
+    ROL A
+    STA particle_zdir       ; Store this for the particle creation
+    THRUSTADD zthrust
+    JSR create_particle
+.nothrust
+    THRUSTDEC xthrust
+    THRUSTDEC zthrust
+
+    LDY ythrust
+    CPY #LO(-95)
+    BEQ nodec
+    DEY
+    CPY #LO(-95)
+    BEQ nolimit
+    DEY
+    CPY #LO(-95)
+    BEQ nolimit
+    DEY
+.nolimit
+    ;LDY #0
+    ;STY xthrust
+    ;STY zthrust
+    STY ythrust
+.nodec
+}

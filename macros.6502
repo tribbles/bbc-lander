@@ -1,3 +1,6 @@
+; Some macros...
+
+; Decrements the thrust amount
 MACRO THRUSTDEC addr
 {
 ; Reduces the thrust value
@@ -12,9 +15,10 @@ MACRO THRUSTDEC addr
 }
 ENDMACRO
 
+; Adds the thrust to the 
 MACRO THRUSTADD addr
 {
-; X and Y are preserved, but N and Z must be set
+; X and Y are preserved, but N and Z must be set from the load of the add
     BEQ noadd
     BMI negadd
     CLC
@@ -39,6 +43,7 @@ MACRO THRUSTADD addr
 }
 ENDMACRO
 
+; 8-bit pseudo random number generator
 MACRO RAND8
 ; Taken from http://www.6502.org/users/mycorner/6502/code/prng.html
 {

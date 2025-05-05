@@ -1,0 +1,107 @@
+; Thrust calculation
+
+; Move the player's X coordinate
+{
+    LDA xthrust
+    BEQ noxmove
+    BMI negxmove
+    CLC
+    ADC mapx
+    STA mapx
+    LDA player_x
+    ADC #0
+    AND #63
+    STA player_x
+    BPL noxmove
+.negxmove
+    CLC
+    ADC mapx
+    STA mapx
+    LDA player_x
+    SBC #0
+    AND #63
+    STA player_x
+.noxmove
+}
+
+; Move the player's Z coordinate (which is similar to the X)
+{
+    LDA zthrust
+    BEQ nozmove
+    BMI negzmove
+    CLC
+    ADC mapz
+    STA mapz
+    LDA player_z
+    ADC #0
+    AND #63
+    STA player_z
+    BPL nozmove
+.negzmove
+    CLC
+    ADC mapz
+    STA mapz
+    LDA player_z
+    SBC #0
+    AND #63
+    STA player_z
+.nozmove
+}
+
+; Move the player's Y coordinate (or altitude!)
+{
+    LDA ythrust
+    BEQ noymove
+    BMI negymove
+    LDX #0
+    STX mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ADC heighty
+    STA heighty
+    LDA mathc
+    ADC player_y
+    STA player_y
+    BCC noymove
+    INC player_y + 1
+    BNE noymove
+.negymove
+    LDX #0
+    STX mathc
+    EOR #255
+    CLC
+    ADC #1
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    ASL A
+    ROL mathc
+    STA mathc + 1
+    LDA heighty
+    SEC
+    SBC mathc + 1
+    STA heighty
+    LDA player_y
+    SBC mathc
+    STA player_y
+    LDA player_y + 1
+    SBC #0
+    STA player_y + 1
+    BPL noymove
+; Gone below the height of the map!
+    LDA #0
+    STA heighty
+    STA player_y
+    STA player_y + 1
+    STA ythrust
+.noymove
+}

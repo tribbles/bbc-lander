@@ -1,0 +1,41 @@
+IF DEBUG_VALUES
+{
+    LDA particle_xh
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #8 + 2
+    LDY #23
+    JSR plot_3digits
+}
+
+{
+    LDA particle_dx
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #8 + 32 + 2
+    LDY #23
+    JSR plot_3digits
+}
+
+{
+    LDA particle_xdir
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #192 + 2
+    LDY #23
+    JSR plot_3digits
+}
+
+{
+    LDA xthrust
+    STA mathc
+    LDA #0
+    STA mathc + 1
+    LDX #192 + 32 + 2
+    LDY #23
+    JSR plot_3digits
+}
+ENDIF

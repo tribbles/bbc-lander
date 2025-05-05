@@ -1,0 +1,139 @@
+; Head-up display. Well, not really, but I couldn't think of a better name for it!
+
+; Update the fuel level
+{
+    LDA update_fuel
+    BEQ no_fuelupdate
+    LDX #LO(fuel_addr)
+    LDY #HI(fuel_addr)
+    JSR prepare_char
+    LDA current_fuel + 1
+    TAX
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    TXA
+    AND #15
+    JSR plot_nextchar
+    LDA current_fuel
+    TAX
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    TXA
+    AND #15
+    JSR plot_nextchar
+    LDA #0
+    STA update_fuel
+.no_fuelupdate
+}
+
+; Update the altitude
+{
+    LDA player_y
+    LDY player_y + 1
+    CMP last_altitude
+    BNE alt_changed
+    CPY last_altitude + 1
+    BEQ alt_notchanged
+.alt_changed
+    STA last_altitude
+    STA mathc
+    STY last_altitude + 1
+    STY mathc + 1
+    LDX #LO(altitude_addr)
+    LDY #HI(altitude_addr)
+    JSR plot_3digits
+.alt_notchanged
+}
+
+; Update the heading
+{
+    LDA yangle
+    CMP last_heading
+    BEQ heading_notchanged
+    STA last_heading
+    CLC
+    ADC #64
+    TAY
+    LDX #180
+    JSR usmulxy
+    LDY #0
+; mathc + 1 is 0..180
+    LDA mathc + 1
+    ASL mathc
+    ROL A
+    STA mathc
+    BCC notover
+    INY
+.notover
+    STY mathc + 1
+; mathc is now 0..360
+    LDX #LO(heading_addr)
+    LDY #HI(heading_addr)
+    JSR plot_3digits
+.heading_notchanged
+}
+
+; Draw the ship angle on top left
+{
+    LDA yangle
+    JSR sincos
+    TYA
+    CLC
+    ADC #40
+    LSR A
+    LSR A
+    STA x0
+    PHA
+    TXA
+    CLC
+    ADC #88
+    LSR A
+    LSR A
+    STA y0
+    PHA
+    LDA yangle
+    CLC
+    ADC #100
+    JSR sincos
+    TYA
+    CLC
+    ADC #40
+    LSR A
+    LSR A
+    STA x1
+    TXA
+    CLC
+    ADC #88
+    LSR A
+    LSR A
+    STA y1
+    JSR plot_line
+
+    PLA
+    STA y0
+    PLA
+    STA x0
+    LDA yangle
+    SEC
+    SBC #100
+    JSR sincos
+    TYA
+    CLC
+    ADC #40
+    LSR A
+    LSR A
+    STA x1
+    TXA
+    CLC
+    ADC #88
+    LSR A
+    LSR A
+    STA y1
+    JSR plot_line
+}
