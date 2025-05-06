@@ -183,6 +183,8 @@
     THRUSTDEC xthrust
     THRUSTDEC zthrust
 
+    LDA onplatform
+    BNE nodec               ; If we are on the platform, then no gravity occurs
 ; Gravity calculation
     LDY ythrust
     CPY #LO(-95)

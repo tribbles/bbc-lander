@@ -55,3 +55,16 @@ MACRO RAND8
     STA rand_seed
 }
 ENDMACRO
+
+MACRO RAND16
+; Taken from http://www.6502.org/users/mycorner/6502/code/prng.html
+{
+    LDA mathc
+    ASL A
+    ROL mathc + 1
+    BCC no_eor
+    EOR #&d7
+.no_eor
+    STA mathc
+}
+ENDMACRO

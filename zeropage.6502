@@ -111,6 +111,8 @@ GUARD &90
     SKIP 1      ; The maximum Y coordinate that was calculated for the ship position; used for ground collision calculation
 .lowshipy
     SKIP 1      ; This is the ship's position in map coordinates, taking into account the maximum pixel Y
+.onplatform
+    SKIP 1      ; If non-zero, then the ship is on the platform
 
 .xspeed
     SKIP 1

@@ -1,10 +1,17 @@
 ; Code that checks to see if the player's hitting the ground
 
 {
+    LDA #0
+    STA onplatform
     LDA player_y1   ; Trivial check to see if the player is above the ground
-    BEQ belowground
+    BNE ag1
+    LDA player_y
+    BEQ ug1
+    BPL belowground ; Positive /may/ be below the ground
 .ag1
     JMP aboveground
+.ug1
+    JMP underground
 .belowground
     LDA #50
     SEC
@@ -13,8 +20,10 @@
     ADC maxshipy
     BMI ag1
     STA lowshipy
-    ;LDA baselocation
-    ;BEQ overbase
+    LDA baselocation
+    BNE notoverbase
+    JMP overbase
+.notoverbase
     LDA mapx
     SEC
     SBC #127
@@ -101,6 +110,33 @@
     STA ythrust
     STA xthrust
     STA zthrust
+    STA player_y
+    LDA #128
+    STA onplatform
+    BMI aboveground
+
+.overbase
+    LDA lowshipy
+    CMP #8
+    BCC aboveground     ; Above the platform
+    LDA #1
+    STA onplatform
+    LDA zangle
+    CMP #8
+    BCS underground     ; Not level enough
+    LDA ythrust
+    BPL okay
+    CMP #LO(-32)
+    BCC underground     ; Too hard!
+.okay
+    LDA #platheight
+    STA player_y
+    LDA #0
+    STA heighty
+    STA zangle
+    STA ythrust
+    STA xthrust
+    STA zthrust
     BEQ aboveground
 
 .complex_compare
@@ -122,7 +158,5 @@
     LDA lowshipy
     CMP x0
     BCS underground
-
-.overbase
 .aboveground
 }

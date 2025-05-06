@@ -13,7 +13,7 @@ maxypos     = 24 * 8
 platheight  = 42
 land_offset = 40
 
-DEBUG_VALUES = TRUE
+DEBUG_VALUES = FALSE
 
 ;map      = &1000 ; 64x64 map
 
@@ -30,7 +30,6 @@ DEBUG_VALUES = TRUE
     LDY #HI(tape)
     JSR oscli
     JSR set_mode
-    ;JSR init_bits
     JSR init_screen
     JSR clear_bank
     JSR swap_banks
@@ -104,7 +103,108 @@ ENDIF
     JSR plot_ship
     JSR plot_particles
 
+    LDA onplatform
+    BMI player_dead
     JMP endforever
+.player_dead
+    LDA current_screen_hi
+    CLC
+    ADC #2
+    STA jtmp + 1
+    LDA #0
+    STA jtmp
+    LDY #0
+    LDX #20
+.newseed
+    RAND8
+    STA mathc
+    RAND8
+    STA mathc + 1
+.fill_screen
+    CPX #18
+    BCS use_rand
+    CPX #3
+    BCC use_rand
+    CPY #24
+    BCC use_rand
+    CPY #256 - 24
+    BCS use_rand
+    LDA #0
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    STA (jtmp), Y
+    INY
+    BNE fill_screen
+    BEQ next_line
+.use_rand
+    RAND16
+    AND #&aa
+    STA (jtmp), Y
+    INY
+    RAND8
+    AND #&55
+    STA (jtmp), Y
+    INY
+    BNE fill_screen
+.next_line
+    INC jtmp + 1
+    DEX
+    BPL newseed
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+
+    LDA #24
+    STA x0
+    LDA #40
+    STA y0
+    STA y1
+    LDA #255 - 24
+    STA x1
+    JSR plot_line
+
+    LDA #24
+    STA x0
+    LDA #20 * 8
+    STA y0
+    STA y1
+    LDA #255 - 24
+    STA x1
+    JSR plot_line
+
+    LDA #24
+    STA x0
+    STA x1
+    LDA #40
+    STA y0
+    LDA #20 * 8
+    STA y1
+    JSR plot_line
+
+    LDA #255 - 24
+    STA x0
+    STA x1
+    LDA #40
+    STA y0
+    LDA #20 * 8
+    STA y1
+    JSR plot_line
+
+    JSR swap_banks
+.dead
+    JMP dead
     
 .xlocs
     SKIP displaysize * displaysize
