@@ -72,9 +72,12 @@ IF (DEBUG_VALUES)
     JSR plot_char
 ENDIF
 
+.all_loop
+    JSR gamestart
+
     INCLUDE "gameinit.6502"
 
-.endforever
+.gameloop
 
     INCLUDE "hcalc.6502"
 
@@ -105,7 +108,7 @@ ENDIF
 
     LDA onplatform
     BMI player_dead
-    JMP endforever
+    JMP gameloop
 .player_dead
     INCLUDE "playerdead.6502"
 .dead
@@ -131,6 +134,7 @@ ENDIF
     INCLUDE "math.6502"
     INCLUDE "ship.6502"
     INCLUDE "particles.6502"
+    INCLUDE "gamestart.6502"
 
     ALIGN 256
 .map

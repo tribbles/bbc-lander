@@ -13,12 +13,14 @@ TEST_DEC24 = FALSE
 TEST_ANGLES = FALSE
 TEST_PARTICLES = FALSE
 TEST_ZERODEPTH = FALSE
-TEST_LINEAR = TRUE
+TEST_LINEAR = FALSE
+TEST_TBM = TRUE
 
 ORG &70
 
 GUARD &90
 
+.temp_scene
 .matha
     SKIP 2
 .mathb
@@ -555,8 +557,82 @@ IF TEST_LINEAR
     JSR replinear
 ENDIF
 
+IF TEST_TBM
+    LDX #0
+    LDA #0
+    JSR rep_tbnmul
+
+    LDX #128
+    LDA #0
+    JSR rep_tbnmul
+
+    LDX #0
+    LDA #128
+    JSR rep_tbnmul
+
+    LDX #1
+    LDA #1
+    JSR rep_tbnmul
+
+    LDX #16
+    LDA #1
+    JSR rep_tbnmul
+
+    LDX #16
+    LDA #16
+    JSR rep_tbnmul
+
+    LDX #16
+    LDA #16 OR 128
+    JSR rep_tbnmul
+
+    LDX #18
+    LDA #63
+    JSR rep_tbnmul
+
+    LDX #18 OR 128
+    LDA #63
+    JSR rep_tbnmul
+
+    LDX #18 OR 128
+    LDA #63 OR 128
+    JSR rep_tbnmul
+
+    LDX #18
+    LDA #63 OR 128
+    JSR rep_tbnmul
+
+    LDX #63
+    LDA #63
+    JSR rep_tbnmul
+
+    LDX #63
+    LDA #32
+    JSR rep_tbnmul
+ENDIF
+
 .loop
     JMP loop
+
+.rep_tbnmul
+    PHA
+    TXA
+    PHA
+    JSR writehex
+    LDA #'x'
+    JSR oswrch
+    PLA
+    TAX
+    PLA
+    PHA
+    JSR writehex
+    LDA #'='
+    JSR oswrch
+    PLA
+    JSR mul_tbn
+    JSR writehex
+    LDA mathc + 0
+    JMP endhex
 
 .replinear
     PHA
@@ -1011,6 +1087,7 @@ ENDIF
 }
 
     INCLUDE "particles.6502"
+    INCLUDE "ship3d.6502"
 
     ALIGN 64
     INCLUDE "ship.6502"

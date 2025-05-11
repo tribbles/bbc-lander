@@ -1,0 +1,4 @@
+; Game start - i.e. player presses a key to start
+
+.gamestart
+    RTS

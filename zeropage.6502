@@ -169,3 +169,6 @@ GUARD &90
 
 .rand_seed
     SKIP 1
+
+.temp_scene     ; Temporary data for the current scene (operation)
+    SKIP 16
