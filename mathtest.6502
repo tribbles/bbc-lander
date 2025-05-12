@@ -557,82 +557,59 @@ IF TEST_LINEAR
     JSR replinear
 ENDIF
 
+MACRO TEST_MULXY6 a, b
+    LDX #LO(a)
+    LDY #LO(b)
+    JSR rep_tbnmul
+    LDA #'|'
+    JSR oswrch
+    LDA #HI(a * b * 4)
+    JSR writehex
+    LDA #LO(a * b * 4)
+    JSR writehex
+    JSR osnewl
+ENDMACRO
+
 IF TEST_TBM
-    LDX #0
-    LDA #0
-    JSR rep_tbnmul
-
-    LDX #128
-    LDA #0
-    JSR rep_tbnmul
-
-    LDX #0
-    LDA #128
-    JSR rep_tbnmul
-
-    LDX #1
-    LDA #1
-    JSR rep_tbnmul
-
-    LDX #16
-    LDA #1
-    JSR rep_tbnmul
-
-    LDX #16
-    LDA #16
-    JSR rep_tbnmul
-
-    LDX #16
-    LDA #16 OR 128
-    JSR rep_tbnmul
-
-    LDX #18
-    LDA #63
-    JSR rep_tbnmul
-
-    LDX #18 OR 128
-    LDA #63
-    JSR rep_tbnmul
-
-    LDX #18 OR 128
-    LDA #63 OR 128
-    JSR rep_tbnmul
-
-    LDX #18
-    LDA #63 OR 128
-    JSR rep_tbnmul
-
-    LDX #63
-    LDA #63
-    JSR rep_tbnmul
-
-    LDX #63
-    LDA #32
-    JSR rep_tbnmul
+    TEST_MULXY6 0, 0
+    TEST_MULXY6 1, 1
+    TEST_MULXY6 16, 1
+    TEST_MULXY6 1, 16
+    TEST_MULXY6 -1, 16
+    TEST_MULXY6 -4, 4
+    TEST_MULXY6 16, 16
+    TEST_MULXY6 16, -16
+    TEST_MULXY6 -16, -16
+    TEST_MULXY6 18, 63
+    TEST_MULXY6 -18, -63
+    TEST_MULXY6 -18, 63
+    TEST_MULXY6 32, 63
+    TEST_MULXY6 63, 32
+    TEST_MULXY6 63, 63
+    TEST_MULXY6 64, 32
+    TEST_MULXY6 32, 64
+    TEST_MULXY6 63, 64
+    TEST_MULXY6 32, 68
+    TEST_MULXY6 63, 68
+    TEST_MULXY6 -13, -17
+    TEST_MULXY6 -57, -43
 ENDIF
 
 .loop
     JMP loop
 
 .rep_tbnmul
-    PHA
-    TXA
-    PHA
+    TYA
     JSR writehex
     LDA #'x'
     JSR oswrch
-    PLA
-    TAX
-    PLA
-    PHA
+    TXA
     JSR writehex
     LDA #'='
     JSR oswrch
-    PLA
-    JSR mul_tbn
-    JSR writehex
-    LDA mathc + 0
-    JMP endhex
+    JSR mulxy6
+    LDX #mathc
+    JMP writehex4
 
 .replinear
     PHA

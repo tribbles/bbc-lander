@@ -170,6 +170,68 @@
     RTS
 }
 
+.mulxy6
+; Multiply X by Y, where X is netween -63 and 63; Y can be outside of this, but the result
+; must be < 32768
+; Returned value is multiplied by 4
+{
+    TXA
+    BEQ iszero
+    STY mathc + 1
+    EOR mathc + 1
+    STA matha
+
+; Check if X is positive
+    TXA
+    BEQ iszero
+    BPL xpos
+    EOR #255
+    CLC
+    ADC #1
+    TAX
+.xpos
+    STX mathc
+
+; Check if Y is negative
+    TYA
+    BPL ypos
+    EOR #255
+    CLC
+    ADC #1
+    STA mathc + 1
+.ypos
+    LDA #0
+    LDX #6
+    LSR mathc
+.mulxyloop
+    BCC no_add
+    CLC
+    ADC mathc + 1
+.no_add
+    ROR A
+    ROR mathc
+    DEX
+    BNE mulxyloop
+    STA mathc + 1
+    LDA matha
+    BMI bothneg
+    RTS
+.bothneg
+    LDA #0
+    SEC
+    SBC mathc
+    STA mathc
+    LDA #0
+    SBC mathc + 1
+    STA mathc + 1
+    RTS
+.iszero
+    LDA #0
+    STA mathc
+    STA mathc + 1
+    RTS
+}
+
 IF FALSE
     ; Calculates the cosine of A (0..255), multiplied by Y
 .cos
@@ -373,6 +435,43 @@ ENDIF
     RTS
 }
 
+
+.hrcos
+; Get the cosine of A (0 .. 255)
+; Returns the cosine
+    CLC
+    ADC #64
+.hrsin
+; Get the sine of A (0 .. 255)
+; Returns the sine
+{
+    TAX
+    BMI negate
+    AND #64
+    BEQ quarter1
+    TXA
+    AND #63
+    EOR #63
+    TAX
+.quarter1
+    LDA hrsintab, X
+    RTS
+.negate
+    AND #127
+    TAX
+    AND #64
+    BEQ quarter3
+    TXA
+    AND #63
+    TAX
+.quarter3
+    LDA #255
+    SEC
+    SBC hrsintab, X
+    RTS
+
+}
+
 ALIGN    64
 divmaxx = 50000
 divmaxy = 32768
@@ -407,4 +506,8 @@ ENDIF
     FOR n, 1, 64
     EQUB LO(400 / (n + divadd))
     NEXT
+.hrsintab
+FOR n, 0, 63
+    EQUB SIN(RAD(n * 90 / 64)) * 64
+NEXT
 
