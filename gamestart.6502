@@ -1,4 +1,80 @@
 ; Game start - i.e. player presses a key to start
 
 .gamestart
+{
+    LDA #0
+    STA yangle
+    STA spinz
+.initloop
+    LDA yangle
+    ASL A
+    ;ASL A
+    JSR hrsin
+    CLC
+    ADC #64
+    LSR A
+    ;SEC
+    ;SBC #8
+    STA zangle
+    JSR rotate_ship
+    LDX #ship_pointcount - 1
+.init_scale
+    LDA ship_x2d, X
+    ;ASL A
+    CLC
+    ADC #128
+    STA ship_x2d, X
+    LDA ship_y2d, X
+    ;ASL A
+    CLC
+    ADC #104
+    STA ship_y2d, X
+    DEX
+    BPL init_scale
+    JSR clear_bank
+    LDA yangle
+    AND #16
+    BNE no_text
+    LDA #6 * 8
+    STA x0
+    LDA #20
+    STA y0
+    LDX #LO(press_return)
+    LDY #HI(press_return)
+    JSR draw_text
+.no_text
+    LDA #6 * 8
+    STA x0
+    LDA #3
+    STA y0
+    LDX #LO(text_keys)
+    LDY #HI(text_keys)
+    JSR draw_text
+
+    LDA #13 * 8
+    STA x0
+    LDA #3
+    STA y0
+    LDX #LO(text_meaning)
+    LDY #HI(text_meaning)
+    JSR draw_text
+
+    LDA #17 * 8
+    STA x0
+    LDA #3
+    STA y0
+    LDX #LO(text_right)
+    LDY #HI(text_right)
+    JSR draw_text
+
+    JSR plot_scaledship
+    JSR swap_banks
+    INC yangle
+    INC yangle
+    LDA #&81
+    LDY #&ff
+    LDX #LO(-74)        ; Return
+    JSR osbyte
+    BCC initloop
+}
     RTS

@@ -2,7 +2,40 @@
 
     LDX #4
     JSR set_colour
+
+    LDA #192
+    STA yangle
+
+    LDA #32
+    STA player_x
+    STA player_z
+
+    LDA #127
+    STA mapx
+    STA mapz
+
+    LDA #platheight
+    STA player_y
+
+    LDA #&99
+    STA current_fuel
+    STA current_fuel + 1
+
+    LDA #1
+    STA update_fuel
+
     LDA #0
+    STA heighty
+    STA player_y + 1
+
+    STA maxshipy
+    STA onplatform
+    STA baselocation
+
+    STA current_score
+    STA current_score + 1
+    STA current_score + 2
+
     STA xoffset
     STA zoffset
 
@@ -13,31 +46,8 @@
     STA spiny
     STA spinz
 
-    LDA #192
-    STA yangle
-
-    LDA #32
-    LDA #32
-    STA player_x
-    STA player_z
-    LDA #127
-    STA mapx
-    STA mapz
-
-    LDA #0
-    STA heighty
-    STA player_y + 1
-    STA current_score
-    STA current_score + 1
-    STA current_score + 2
-    LDA #platheight
-    STA player_y
-
-    LDA #&99
-    STA current_fuel
-    STA current_fuel + 1
-    LDA #1
-    STA update_fuel
-
-    LDA #0
-    STA maxshipy
+    LDX #particle_end - particle_xl
+.clr_particles
+    DEX
+    STA particle_xl - 1, X
+    BNE clr_particles

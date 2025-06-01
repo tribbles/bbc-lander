@@ -112,8 +112,7 @@ ENDIF
     JMP gameloop
 .player_dead
     INCLUDE "playerdead.6502"
-.dead
-    JMP dead
+    JMP all_loop
     
 .xlocs
     SKIP displaysize * displaysize
@@ -133,7 +132,6 @@ ENDIF
     INCLUDE "screen.6502"
     INCLUDE "draw.6502"
     INCLUDE "math.6502"
-    ;INCLUDE "ship.6502"
     INCLUDE "particles.6502"
     INCLUDE "gamestart.6502"
     INCLUDE "ship3d.6502"

@@ -492,3 +492,92 @@ osbyte   = &fff4
 
 .font
     INCBIN  "font.bin"
+
+.press_return
+    EQUS "Press RETURN to play", 0
+
+.text_keys
+    EQUS "Z", 10, "X", 10, "K", 10, "L", 10, "SPACE", 0
+
+.text_meaning
+    EQUS "Anti", 0
+.text_right
+    EQUS "clockwise", 10
+    EQUS "Clockwise", 10
+    EQUS "  Nose up", 10
+    EQUS "Nose down", 10
+    EQUS "   Thrust", 0
+.text_dead
+    EQUS "Oh dear, it looks like", 10
+    EQUS "you hit the floor. This", 10
+    EQUS "can be a career limiting", 10
+    EQUS "incident some times, but", 10
+    EQUS "in this case, you are", 10
+    EQUS "most definitely dead.", 10, 10, 10
+    EQUS "Please feel free to have", 10
+    EQUS "another go. If you dare!", 10, 10, 10
+    EQUS "Press RETURN to continue", 0
+
+.draw_text
+{
+    STX rd_addr + 1
+    STY rd_addr + 2
+.retline
+    LDA x0
+    STA wr_addr + 1
+    LDA y0
+    CLC
+    ADC current_screen_hi
+    STA wr_addr + 2
+.rd_addr
+    LDA rd_addr
+    BEQ draw_done
+    CMP #10
+    BEQ newline
+    SEC
+    SBC #32
+    BMI draw_done
+    BEQ skip_char
+    LDX #&c0 >> 3
+    STX y1
+    ASL A
+    ROL y1
+    ASL A
+    ROL y1
+    ASL A
+    ROL y1
+    STA chr_addr + 1
+    LDA y1
+    STA chr_addr + 2
+    LDX #7
+.chr_addr
+    LDA rd_addr, X
+    STA x1
+    LSR A
+    AND x1
+.wr_addr
+    STA rd_addr, X
+    DEX
+    BPL chr_addr
+.skip_char
+    LDA wr_addr + 1
+    CLC
+    ADC #8
+    STA wr_addr + 1
+    BCC inc_rd
+    INC wr_addr + 2
+.inc_rd
+    INC rd_addr + 1
+    BNE rd_addr
+    INC rd_addr + 2
+    BPL rd_addr
+.draw_done
+    RTS
+.newline
+    INC y0
+    INC rd_addr + 1
+    BNE retline
+    INC rd_addr + 2
+    BPL retline
+    RTS
+}

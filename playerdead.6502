@@ -93,4 +93,25 @@
     STA y1
     JSR plot_line
 
+    LDA #4 * 8
+    STA x0
+    LDA #6
+    STA y0
+    LDX #LO(text_dead)
+    LDY #HI(text_dead)
+    JSR draw_text
+
     JSR swap_banks
+
+.wait_return
+    LDA #&81
+    LDY #&ff
+    LDX #LO(-74)        ; Return
+    JSR osbyte
+    BCC wait_return
+.wait_release
+    LDA #&81
+    LDY #&ff
+    LDX #LO(-74)        ; Return
+    JSR osbyte
+    BCS wait_release

@@ -97,9 +97,9 @@
     BPL limitz0
     LDA #0
 .limitz0
-    CMP #63
+    CMP #100
     BCC limitz1
-    LDA #63
+    LDA #100
 .limitz1
     STA zangle
 }

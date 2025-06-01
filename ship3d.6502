@@ -297,6 +297,8 @@ if DEF_3DX
     visible = digits + 6
 ENDIF
 
+    LDA #0
+    STA maxshipy
     LDA #255
     STA pixelmask
     STA pixelmask + 1
@@ -315,13 +317,18 @@ ENDIF
     BMI ss_yneg
     LSR A
     LSR A
+    CMP maxshipy
+    BCC cont_yneg
+    STA maxshipy
 .cont_yneg
     CLC
     ADC ship_height
-    ADC #16
+    ADC #14
     STA ship_y2d, X
     DEX
     BPL scale_ship
+
+.*plot_scaledship
     LDA #visible + 0
     STA pshift + 1      ; Again, some self-modifying code here!
     LDA #LO(ship_invertex0)
