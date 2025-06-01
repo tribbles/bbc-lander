@@ -157,10 +157,10 @@
     ROL A
     ASL mathc
     ROL A
-    TAY
-    DEY                  ; X direction is negative (for some reason!)
-    TYA
-    EOR #255
+    ;TAY
+    ;DEY                  ; X direction is negative (for some reason!)
+    ;TYA
+    ;EOR #255
     STA particle_xdir       ; Store this for the particle creation
     THRUSTADD xthrust
 

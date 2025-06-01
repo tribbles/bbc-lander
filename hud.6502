@@ -79,6 +79,7 @@
 .heading_notchanged
 }
 
+IF FALSE
 ; Draw the ship angle on top left
 {
     LDA yangle
@@ -137,3 +138,4 @@
     STA y1
     JSR plot_line
 }
+ENDIF

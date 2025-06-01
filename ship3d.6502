@@ -23,14 +23,10 @@ ship_facetcount = 8
     JSR hrsin
     STA siny
 
-    ; Z angle is currently inverted
     LDA zangle
     JSR hrcos
     STA cosz
-    ;LDA zangle  ; Annoyingly, this is inverted
-    LDA #0
-    SEC
-    SBC zangle
+    LDA zangle
     JSR hrsin
     STA sinz
 
@@ -381,15 +377,11 @@ ENDIF
 }
 
 .ship_xpoints
-; X, Y, Z
-    ;EQUB LO(  0 * 3), LO(  0 * 3), LO( 18 * 3), LO(  7 * 3), LO( -7 * 3), LO(-18 * 3)
-    EQUB LO(  0 * 3), LO(-15 * 3), LO(  0 * 3), LO( 18 * 3), LO( 18 *3) , LO(  0 * 3)
+    EQUB LO(  0 * 3), LO( 15 * 3), LO(  0 * 3), LO(-18 * 3), LO(-18 *3) , LO(  0 * 3)
 .ship_ypoints
-    ;EQUB LO(  7 * 3), LO(  0 * 3), LO(  3 * 3), LO(  0 * 3), LO(  0 * 3), LO(  3 * 3)
     EQUB LO( -7 * 3), LO(  0 * 3), LO( -3 * 3), LO(  0 * 3), LO(  0 * 3), LO( -3 * 3)
 .ship_zpoints
-    ;EQUB LO(  0 * 3), LO(-15 * 3), LO(  0 * 3), LO( 18 * 3), LO( 18 * 3), LO(  0 * 3)
-    EQUB LO(  0 * 3), LO(  0 * 3), LO(-18 * 3), LO( -7 * 3), LO(  7 * 3), LO( 18 * 3)
+    EQUB LO(  0 * 3), LO(  0 * 3), LO( 18 * 3), LO(  7 * 3), LO( -7 * 3), LO(-18 * 3)
 
 .ship_xrot
     SKIP ship_pointcount
@@ -399,9 +391,9 @@ ENDIF
     SKIP ship_pointcount
 
 .ship_x2d
-    SKIP ship_pointcount * 2
+    SKIP ship_pointcount
 .ship_y2d
-    SKIP ship_pointcount * 2
+    SKIP ship_pointcount
 
 .ship_facets0
     EQUB 0, 0, 0, 0, 0, 1, 1, 1
