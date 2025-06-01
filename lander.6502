@@ -14,6 +14,7 @@ platheight  = 42
 land_offset = 40
 
 DEBUG_VALUES = FALSE
+DEF_3DX = TRUE
 
 ;map      = &1000 ; 64x64 map
 
@@ -34,7 +35,7 @@ DEBUG_VALUES = FALSE
     JSR clear_bank
     JSR swap_banks
     JSR clear_bank
-    JSR fixship
+    ;JSR fixship
     LDA #&54
     STA rand_seed
 
@@ -132,9 +133,10 @@ ENDIF
     INCLUDE "screen.6502"
     INCLUDE "draw.6502"
     INCLUDE "math.6502"
-    INCLUDE "ship.6502"
+    ;INCLUDE "ship.6502"
     INCLUDE "particles.6502"
     INCLUDE "gamestart.6502"
+    INCLUDE "ship3d.6502"
 
     ALIGN 256
 .map

@@ -1,0 +1,271 @@
+oswrch = &ffee
+osnewl = &ffe7
+osasci = &ffe3
+
+    INCLUDE "zeropage.6502"
+.siny
+    SKIP 1
+.cosy
+    SKIP 1
+.sinz
+    SKIP 1
+.cosz
+    SKIP 1
+.visible
+    SKIP 2
+.fvisible
+    SKIP 1
+.dy10
+    SKIP 1
+.dy12
+    SKIP 1
+.dx10
+    SKIP 1
+.dx12
+    SKIP 1
+.x2
+    SKIP 1
+.y2
+    SKIP 1
+.part2
+    SKIP 2
+    DEF_3DX = FALSE
+
+    ORG &1900
+.start
+{
+    ;siny = x0
+    ;cosy = y0
+    ;sinz = x1
+    ;cosz = y1
+    curx = digits + 0
+    cury = digits + 1
+    curz = digits + 2
+    xp = digits + 3
+    yp = digits + 4
+    xpp = digits + 5
+    zpp = yp            ; These don't overlap!
+
+    ;visible = digits + 6
+
+    LDA #192
+    STA yangle
+    LDA #0
+    STA zangle
+    JSR rotate_ship
+
+    LDA yangle
+    JSR writedec
+    JSR comma
+    LDA zangle
+    JSR writedec
+
+    JSR arrow
+
+    LDA #'y'
+    JSR oswrch
+    LDA siny
+    JSR writedec
+    JSR comma
+    LDA cosy
+    JSR writedec
+    JSR space
+    LDA #'z'
+    JSR oswrch
+    LDA sinz
+    JSR writedec
+    JSR comma
+    LDA cosz
+    JSR writedec
+
+    JSR osnewl
+    LDX #0
+.reportloop
+    TXA
+    ORA #'0'
+    JSR oswrch
+    LDA #'='
+    JSR oswrch
+
+    LDA ship_xpoints, X
+    JSR writedec
+    JSR comma
+    LDA ship_ypoints, X
+    JSR writedec
+    JSR comma
+    LDA ship_zpoints, X
+    JSR writedec
+
+    JSR arrow
+
+    LDA ship_xrot, X
+    JSR writedec
+    JSR comma
+    LDA ship_yrot, X
+    JSR writedec
+    JSR comma
+    LDA ship_zrot, X
+    JSR writedec
+
+    JSR arrow
+
+    LDA ship_x2d, X
+    JSR writedec
+    JSR comma
+    LDA ship_y2d, X
+    JSR writedec
+
+    JSR osnewl
+    INX
+    CPX #ship_pointcount
+    BNE reportloop
+
+    LDA fvisible
+    JSR writehex
+    JSR arrow
+    LDA visible + 1
+    JSR writehex
+    LDA visible + 0
+    JSR writehex
+    JSR osnewl
+    LDX #7
+.vis0loop
+    LSR visible + 0
+    BCC v0_notvisible
+    LDA ship_invertex0, X
+    JSR writehex
+    LDA ship_invertex1, X
+    JSR writehex
+    JSR comma
+.v0_notvisible
+    DEX
+    BPL vis0loop
+
+    LDX #7
+.vis1loop
+    LSR visible + 1
+    BCC v1_notvisible
+    LDA ship_invertex0 + 8, X
+    JSR writehex
+    LDA ship_invertex1 + 8, X
+    JSR writehex
+    JSR comma
+.v1_notvisible
+    DEX
+    BPL vis1loop
+}
+    JSR osnewl
+    LDA #32
+    STA ship_height
+    JSR plot_ship
+{
+.end4ever
+    JMP end4ever
+}
+
+.arrow
+    JSR space
+    LDA #']'
+    JSR oswrch
+.space
+    LDA #32
+    JMP oswrch
+
+.comma
+    LDA #','
+    JMP oswrch
+
+.writehex4
+    LDA 1, X
+    JSR writehex
+    LDA 0, X
+.writehex
+    PHA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR write4
+    PLA
+    AND #15
+.write4
+    CMP #10
+    BCC less10
+    ADC #'A' - 11
+    JMP oswrch
+.less10
+    ADC #'0'
+    JMP oswrch
+
+.writedec
+{
+    STX tmpx
+    STY tmpy
+    CMP #0
+    BPL positive
+    TAX
+    LDA #'-'
+    JSR oswrch
+    TXA
+    EOR #255
+    CLC
+    ADC #1
+.positive
+    CMP #99
+    BCC less100
+    TAX
+    LDA #'1'
+    JSR oswrch
+    TXA
+    SEC
+    SBC #100
+.less100
+    LDX #0
+.tenloop
+    CMP #10
+    BCC less10
+    INX
+    SEC
+    SBC #10
+    BPL tenloop
+.less10
+    TAY
+    TXA
+    BEQ skipzero
+    ORA #'0'
+    JSR oswrch
+.skipzero
+    TYA
+    LDX tmpx
+    LDY tmpy
+    ORA #'0'
+    JMP oswrch
+.tmpx
+    EQUB 0
+.tmpy
+    EQUB 0
+}
+
+.plot_line
+    LDA x0
+    JSR writehex
+    JSR comma
+    LDA y0
+    JSR writehex
+    JSR arrow
+    LDA x1
+    JSR writehex
+    JSR comma
+    LDA y1
+    JSR writehex
+    JMP osnewl
+
+.bits
+    EQUB 128, 64, 32, 16, 8, 4, 2, 1
+
+    INCLUDE "ship3d.6502"
+    INCLUDE "math.6502"
+.end
+    SKIP 0
+
+    SAVE "spintst", start, end

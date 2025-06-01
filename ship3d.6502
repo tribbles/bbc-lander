@@ -1,5 +1,5 @@
 ship_pointcount = 6
-ship_factcount = 8
+ship_facetcount = 8
 
 .rotate_ship
 {
@@ -22,13 +22,19 @@ ship_factcount = 8
     LDA yangle
     JSR hrsin
     STA siny
+
+    ; Z angle is currently inverted
     LDA zangle
     JSR hrcos
     STA cosz
-    LDA zangle
+    ;LDA zangle  ; Annoyingly, this is inverted
+    LDA #0
+    SEC
+    SBC zangle
     JSR hrsin
     STA sinz
 
+; Rotate all of the points
     LDY #ship_pointcount - 1
 .ship_rotloop
     STY jtmp
@@ -81,7 +87,7 @@ ship_factcount = 8
     LDY siny
     JSR mulxy6          ; Z * siny
 
-    LDA jtmp + 1
+    LDA xpp
     SEC
     SBC mathc + 1
     STA xpp             ; Save X''
@@ -103,17 +109,287 @@ ship_factcount = 8
     STA ship_zrot, Y    ; Save Z''
     LDA xpp
     STA ship_xrot, Y    ; Copy X''
+
+    LDA ship_zrot, Y
+    EOR #128
+    LSR A
+    LSR A
+    TAX
+    LDA shipzdiv, X
+    STA xp
+
+    LDX ship_xrot, Y
+    TAY
+    JSR mulxy6
+    LDA mathc + 1
+    LDY jtmp
+    STA ship_x2d, Y
+
+    LDX ship_yrot, Y
+    LDY xp
+    JSR mulxy6
+    LDA mathc + 1
+    LDY jtmp
+    STA ship_y2d, Y
+
     DEY
-    BPL ship_rotloop
+    BMI ship_rotdone
+    JMP ship_rotloop
+.ship_rotdone
+}
+{
+; Now the backface culling...
+if DEF_3DX
+    x2 = digits + 0
+    y2 = digits + 1
+
+    dy10 = dy
+    dy12 = digits + 2
+    dx10 = dx
+    dx12 = digits + 3
+
+    part2 = digits + 4
+
+    visible = digits + 6
+ENDIF
+
+    LDX #0
+    STX visible + 0
+    STX visible + 1
+if DEF_3DX = FALSE
+    STX fvisible
+ENDIF
+    LDY #ship_facetcount - 1
+.ship_cull
+    STY jtmp
+
+; If (x1 - x0) * (y1 - y2) - (y1 - y0) * (x1 - x2) < 0 : draw
+
+    LDX ship_facets2, Y
+    LDA ship_x2d, X
+    STA x2
+    LDA ship_y2d, X
+    STA y2
+
+    LDX ship_facets0, Y
+    LDA ship_x2d, X
+    STA x0
+    LDA ship_y2d, X
+    STA y0
+
+    LDX ship_facets1, Y
+    LDA ship_y2d, X
+    TAY
+    SEC
+    SBC y0
+    STA dy10        ; (y1 - y0)
+
+    TYA
+    SEC
+    SBC y2
+    STA dy12        ; (y1 - y2)
+
+    LDA ship_x2d, X
+    TAY
+    SEC
+    SBC x0
+    STA dx10        ; (x1 - x0)
+
+    TYA
+    SEC
+    SBC x2
+    BEQ dx12_dy10_zero
+    ;STA dx12        ; (y1 - y2)
+    TAY
+    LDX dy10
+    BEQ dx12_dy10_zero
+    JSR mulxy
+    LDA mathc + 0
+    STA part2 + 0
+    LDA mathc + 1
+    STA part2 + 1
+.calc_part0
+    LDX dx10
+    BEQ dx10_dy12_zero
+    LDY dy12
+    BEQ dx10_dy12_zero
+    JSR mulxy
+.check_cull
+    SEC
+    LDA mathc + 0
+    SBC part2 + 0
+    TAY
+    LDA mathc + 1
+    SBC part2 + 1
+    BMI culled
+    BNE not_culled
+    TYA
+    BEQ culled
+.not_culled
+    LDY jtmp
+if DEF_3DX = FALSE
+    LDA bits, Y
+    ORA fvisible
+    STA fvisible
+ENDIF
+
+    LDX ship_vertex01, Y    ; This is always 0-7 for vertex01
+    LDA bits, X
+    ORA visible + 0
+    STA visible + 0
+
+    LDX ship_vertex02, Y
+    CPX #8
+    BCC under8_v02
+    LDA bits - 8, X
+    ORA visible + 1
+    STA visible + 1
+    BNE add_v03
+.under8_v02
+    LDA bits, X
+    ORA visible + 0
+    STA visible + 0
+
+.add_v03
+    LDX ship_vertex03, Y    ; These can be higher - in fact, most likely
+    CPX #8
+    BCC under8_v03
+    LDA bits - 8, X
+    ORA visible + 1
+    STA visible + 1
+    BNE culled
+.under8_v03
+    LDA bits, X
+    ORA visible + 0
+    STA visible + 0
+.culled
+    LDY jtmp
+    DEY
+    BMI cull_done
+    JMP ship_cull
+
+.dx12_dy10_zero
+    LDA #0
+    STA part2 + 0
+    STA part2 + 1
+    BEQ calc_part0
+    
+.dx10_dy12_zero
+    LDA #0
+    STA mathc + 0
+    STA mathc + 1
+    BEQ check_cull
+
+.cull_done
+    RTS
+
+}
+
+.plot_ship
+{
+if DEF_3DX
+    x2 = digits + 0
+    y2 = digits + 1
+
+    dy10 = dy
+    dy12 = digits + 2
+    dx10 = dx
+    dx12 = digits + 3
+
+    part2 = digits + 4
+
+    visible = digits + 6
+ENDIF
+
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    JSR rotate_ship
+    LDX #ship_pointcount - 1
+.scale_ship
+    LDA ship_x2d, X
+    BMI ss_xneg
+    LSR A
+    LSR A
+.cont_xneg
+    CLC
+    ADC #128
+    STA ship_x2d, X
+    LDA ship_y2d, X
+    BMI ss_yneg
+    LSR A
+    LSR A
+.cont_yneg
+    CLC
+    ADC ship_height
+    ADC #16
+    STA ship_y2d, X
+    DEX
+    BPL scale_ship
+    LDA #visible + 0
+    STA pshift + 1      ; Again, some self-modifying code here!
+    LDA #LO(ship_invertex0)
+    STA tab1 + 1
+    LDA #LO(ship_invertex1)
+    STA tab2 + 1
+    LDA #1
+    STA jtmp + 1
+.vis_loop
+    LDX #7
+.pvis0_loop
+    STX jtmp
+.pshift
+    LSR visible + 0
+    BCC pinvisible0
+.tab1
+    LDY ship_invertex0, X
+    LDA ship_x2d, Y
+    STA x0
+    LDA ship_y2d, Y
+    STA y0
+.tab2
+    LDY ship_invertex1, X
+    LDA ship_x2d, Y
+    STA x1
+    LDA ship_y2d, Y
+    STA y1
+    JSR plot_line
+.pinvisible0
+    LDX jtmp
+    DEX
+    BPL pvis0_loop
+    INC pshift + 1
+    LDA tab1 + 1
+    CLC
+    ADC #8
+    STA tab1 + 1
+    ADC #LO(ship_invertex1 - ship_invertex0)
+    STA tab2 + 1
+    DEC jtmp + 1
+    BPL vis_loop
+    RTS
+.ss_xneg
+    LSR A
+    LSR A
+    ORA #192
+    BNE cont_xneg
+.ss_yneg
+    LSR A
+    LSR A
+    ORA #192
+    BNE cont_yneg
 }
 
 .ship_xpoints
 ; X, Y, Z
-    EQUB 0, 0, 18, 7, LO(-7), LO(-18)
+    ;EQUB LO(  0 * 3), LO(  0 * 3), LO( 18 * 3), LO(  7 * 3), LO( -7 * 3), LO(-18 * 3)
+    EQUB LO(  0 * 3), LO(-15 * 3), LO(  0 * 3), LO( 18 * 3), LO( 18 *3) , LO(  0 * 3)
 .ship_ypoints
-    EQUB 7, 0, 3, 0, 0, 3
+    ;EQUB LO(  7 * 3), LO(  0 * 3), LO(  3 * 3), LO(  0 * 3), LO(  0 * 3), LO(  3 * 3)
+    EQUB LO( -7 * 3), LO(  0 * 3), LO( -3 * 3), LO(  0 * 3), LO(  0 * 3), LO( -3 * 3)
 .ship_zpoints
-    EQUB 0, LO(-15), 0, 18, 18, 0
+    ;EQUB LO(  0 * 3), LO(-15 * 3), LO(  0 * 3), LO( 18 * 3), LO( 18 * 3), LO(  0 * 3)
+    EQUB LO(  0 * 3), LO(  0 * 3), LO(-18 * 3), LO( -7 * 3), LO(  7 * 3), LO( 18 * 3)
 
 .ship_xrot
     SKIP ship_pointcount
@@ -127,19 +403,36 @@ ship_factcount = 8
 .ship_y2d
     SKIP ship_pointcount * 2
 
-.ship_facets
-; Ship facets consist of a bitfield
-; Bits 0..1 = Vector point 1 (allows 0-3)
-; Bits 2..4 = Vector point 2 (allows 0-7)
-; Bits 5..7 = Vector point 3 (allows 0-7)
+.ship_facets0
+    EQUB 0, 0, 0, 0, 0, 1, 1, 1
+.ship_facets1
+    EQUB 1, 2, 3, 4, 5, 3, 4, 5
+.ship_facets2
+    EQUB 2, 3, 4, 5, 1, 2, 3, 4
 
-; Top
-    EQUB (0 << 0) OR (1 << 2) OR (2 << 5)
-    EQUB (0 << 0) OR (2 << 2) OR (3 << 5)
-    EQUB (0 << 0) OR (3 << 2) OR (4 << 5)
-    EQUB (0 << 0) OR (4 << 2) OR (5 << 5)
-    EQUB (0 << 0) OR (5 << 2) OR (1 << 5)
-; Bottom
-    EQUB (1 << 0) OR (3 << 2) OR (2 << 5)
-    EQUB (1 << 0) OR (4 << 2) OR (3 << 5)
-    EQUB (1 << 0) OR (5 << 2) OR (4 << 5)
+.ship_vertex01
+    ;EQUW (1 << 0), (1 << 1), (1 << 2), (1 << 3), (1 << 0),  (1 << 5), (1 << 6), (1 << 5)
+    EQUB 0, 1, 2, 3, 0,  5, 6, 7
+.ship_vertex02
+    ;EQUW (1 << 1), (1 << 2), (1 << 3), (1 << 4), (1 << 4),  (1 << 6), (1 << 7), (1 << 7)
+    EQUB 1, 2, 3, 4, 4,  6, 7, 8
+.ship_vertex03
+    ;EQUW (1 << 5), (1 << 9), (1 << 10), (1 << 11), (1 << 8),  (1 << 9), (1 << 10), (1 << 11)
+    EQUB 5, 9, 10, 11, 8,  9, 10, 11
+
+.ship_invertex0
+    EQUB 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 3, 4
+.ship_invertex1
+    EQUB 1, 2, 3, 4, 5, 2, 3, 4, 5, 3, 4, 5
+; 0 -> 1 = 0
+; 0 -> 2 = 1
+; 0 -> 3 = 2
+; 0 -> 4 = 3
+; 0 -> 5 = 4
+; 1 -> 2 = 5
+; 1 -> 3 = 6
+; 1 -> 4 = 7
+; 1 -> 5 = 8
+; 2 -> 3 = 9
+; 3 -> 4 = 10
+; 4 -> 5 = 11

@@ -444,14 +444,14 @@ ENDIF
 .hrsin
 ; Get the sine of A (0 .. 255)
 ; Returns the sine
+; X is corrupted
 {
     TAX
     BMI negate
     AND #64
     BEQ quarter1
     TXA
-    AND #63
-    EOR #63
+    EOR #127
     TAX
 .quarter1
     LDA hrsintab, X
@@ -459,13 +459,13 @@ ENDIF
 .negate
     AND #127
     TAX
-    AND #64
-    BEQ quarter3
+    ASL A
+    BPL quarter3
     TXA
-    AND #63
+    EOR #127
     TAX
 .quarter3
-    LDA #255
+    LDA #0
     SEC
     SBC hrsintab, X
     RTS
@@ -508,6 +508,9 @@ ENDIF
     NEXT
 .hrsintab
 FOR n, 0, 63
-    EQUB SIN(RAD(n * 90 / 64)) * 64
+    EQUB SIN(RAD(n * 90 / 64)) * 64 + 0.5
 NEXT
-
+.shipzdiv
+    FOR n, 1, 64
+    EQUB 8192 / (n + 127)
+NEXT
