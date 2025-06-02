@@ -67,10 +67,6 @@ IF (DEBUG_VALUES)
     LDA #8
     JSR plot_char
 
-    LDX #LO(fuel_addr)
-    LDY #HI(fuel_addr)
-    LDA #9
-    JSR plot_char
 ENDIF
 
 .all_loop

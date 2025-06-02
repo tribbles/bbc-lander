@@ -123,15 +123,12 @@
     BCS thrust
     JMP nothrust
 .thrust
-    LDA current_fuel
-    SED
-    SEC
-    SBC #1
+    DEC current_fuel
+    BPL fuelcalc_done
+    LDA #15
     STA current_fuel
-    LDA current_fuel + 1
-    SBC #0
-    STA current_fuel + 1
-    CLD
+    DEC current_fuel + 1
+.fuelcalc_done
     INC update_fuel
     
     LDA zangle

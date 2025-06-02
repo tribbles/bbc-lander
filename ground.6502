@@ -137,7 +137,22 @@
     STA ythrust
     STA xthrust
     STA zthrust
-    BEQ aboveground
+    LDA current_fuel + 1
+    CMP #5 * 6 - 1
+    BNE fuel_increment
+    LDA current_fuel + 1
+    CMP #15
+    BNE aboveground
+.fuel_increment
+    INC update_fuel
+    INC current_fuel
+    LDA current_fuel
+    CMP #16
+    BNE aboveground
+    LDA #0
+    STA current_fuel
+    INC current_fuel + 1
+    BNE aboveground
 
 .complex_compare
     LDX x0

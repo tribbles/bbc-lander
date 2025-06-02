@@ -435,7 +435,6 @@ ENDIF
     RTS
 }
 
-
 .hrcos
 ; Get the cosine of A (0 .. 255)
 ; Returns the cosine

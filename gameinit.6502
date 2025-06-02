@@ -17,8 +17,9 @@
     LDA #platheight
     STA player_y
 
-    LDA #&99
+    LDA #15
     STA current_fuel
+    LDA #5 * 6 - 1
     STA current_fuel + 1
 
     LDA #1

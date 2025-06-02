@@ -4,31 +4,48 @@
 {
     LDA update_fuel
     BEQ no_fuelupdate
-    LDX #LO(fuel_addr)
-    LDY #HI(fuel_addr)
-    JSR prepare_char
+    LDA #LO(fuel_addr)
+    STA write_fuel1 + 1
+    STA write_fuel2 + 1
+    LDA #HI(fuel_addr + screen1)
+    STA write_fuel1 + 2
+    LDA #HI(fuel_addr + screen2)
+    STA write_fuel2 + 2
+    LDX #4 * 8 + 5
+    LDY #0
+    STY update_fuel
     LDA current_fuel + 1
-    TAX
-    LSR A
-    LSR A
-    LSR A
-    LSR A
-    JSR plot_nextchar
+    ORA current_fuel
+.fuel_loop
+    CPY current_fuel + 1
+    BEQ fuel_equal
+    BCS fuel_over
+    LDA #255
+.write_fuel1
+    STA &1234, X
+.write_fuel2
+    STA &1234, X
+    INY
+    DEX
     TXA
-    AND #15
-    JSR plot_nextchar
-    LDA current_fuel
-    TAX
-    LSR A
-    LSR A
-    LSR A
-    LSR A
-    JSR plot_nextchar
-    TXA
-    AND #15
-    JSR plot_nextchar
+    AND #7
+    CMP #7
+    BNE fuel_loop
+    DEX
+    DEX
+    BPL fuel_loop
+    BMI no_fuelupdate
+.fuel_over
     LDA #0
-    STA update_fuel
+    BEQ write_fuel1
+.fuel_equal
+    LDA current_fuel
+    LSR A
+    EOR #7
+    TAY
+    LDA rightbits + 1, Y ; The byte after this is 0, by coincidence!
+    LDY current_fuel + 1
+    JMP write_fuel1
 .no_fuelupdate
 }
 

@@ -143,7 +143,7 @@ ENDMACRO
     STA particle_zh, X
 
 ; Calculate Y position
-    LDA #48
+    LDA #49
     SEC
     SBC player_y
     STA particle_yh, X
