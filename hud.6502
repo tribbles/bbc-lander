@@ -43,10 +43,50 @@
     LSR A
     EOR #7
     TAY
-    LDA rightbits + 1, Y ; The byte after this is 0, by coincidence!
+    LDA rightbits, Y ; The byte after this is 0, by coincidence!
     LDY current_fuel + 1
     JMP write_fuel1
 .no_fuelupdate
+}
+
+{
+    LDA update_score
+    BEQ no_scoreupdate
+    DEC update_score
+    LDX #LO(score_addr)
+    LDY #HI(score_addr)
+    JSR prepare_char
+    
+    LDA current_score + 2
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    LDA current_score + 2
+    AND #15
+    JSR plot_nextchar
+
+    LDA current_score + 1
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    LDA current_score + 1
+    AND #15
+    JSR plot_nextchar
+
+    LDA current_score + 0
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    JSR plot_nextchar
+    LDA current_score + 0
+    AND #15
+    JSR plot_nextchar
+.no_scoreupdate
 }
 
 ; Update the altitude

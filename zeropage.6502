@@ -157,6 +157,7 @@ GUARD &90
     SKIP 2      ; Last digit is always 0!
 .update_fuel
     SKIP 1
+.update_score
 
 .current_particle
     SKIP 1
@@ -168,6 +169,13 @@ GUARD &90
     SKIP 1
 
 .rand_seed
+    SKIP 1
+
+.lastx
+    SKIP 1
+.lastz
+    SKIP 1
+.scoreinc
     SKIP 1
 
 .temp_scene     ; Temporary data for the current scene (operation)

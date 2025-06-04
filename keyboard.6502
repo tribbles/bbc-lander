@@ -200,3 +200,37 @@
     STY ythrust
 .nodec
 }
+
+; Score calculation
+{
+    LDA #0
+    STA scoreinc
+    LDA mapx
+    CMP lastx
+    BEQ no_incxscore
+    STA lastx
+    INC scoreinc
+.no_incxscore
+    LDA mapz
+    CMP lastz
+    BEQ no_inczscore
+    STA lastz
+    INC scoreinc
+.no_inczscore
+    LDA scoreinc
+    BEQ no_incscore
+    SED
+    CLC
+    ADC current_score + 0
+    STA current_score + 0
+    LDA current_score + 1
+    ADC #0
+    STA current_score + 1
+    LDA current_score + 2
+    ADC #0
+    STA current_score + 2
+    CLD
+    LDA #2
+    STA update_score
+.no_incscore
+}

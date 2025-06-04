@@ -4,7 +4,7 @@ ula      = &fe20
 heading_addr = &0011
 altitude_addr = &0110
 direction_addr = &0032
-score_addr = &00d1
+score_addr = &00c9
 fuel_addr = &01d0
 
 .set_mode

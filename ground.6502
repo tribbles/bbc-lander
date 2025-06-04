@@ -138,12 +138,10 @@
     STA xthrust
     STA zthrust
     LDA current_fuel + 1
-    CMP #5 * 6 - 1
-    BNE fuel_increment
-    LDA current_fuel + 1
-    CMP #15
-    BNE aboveground
-.fuel_increment
+    CLC
+    ADC current_fuel
+    CMP #(5 * 6 - 1) + 15
+    BEQ aboveground
     INC update_fuel
     INC current_fuel
     LDA current_fuel
