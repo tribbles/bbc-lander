@@ -38,7 +38,18 @@ fuel_addr = &01d0
     
     LDA #HI(screen)
     STA current_screen_hi
-    
+
+    LDA #0
+    LDX #1
+    JSR osbyte
+    CPX #3
+    BCC beeb
+    LDA #&89
+    STA font_addr_base + 1
+    LDA &fe30
+    ORA #128
+    STA &fe30
+.beeb
     LDX #&4
     JMP set_colour
 }
@@ -538,7 +549,7 @@ osbyte   = &fff4
     SBC #32
     BMI draw_done
     BEQ skip_char
-    LDX #&c0 >> 3
+    LDX #0
     STX y1
     ASL A
     ROL y1
@@ -548,6 +559,8 @@ osbyte   = &fff4
     ROL y1
     STA chr_addr + 1
     LDA y1
+.*font_addr_base
+    ADC #&c0        ; Carry is clear (since y1 starts off at 0)
     STA chr_addr + 2
     LDX #7
 .chr_addr
