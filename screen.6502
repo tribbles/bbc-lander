@@ -497,15 +497,15 @@ osbyte   = &fff4
     EQUS "Press RETURN to play", 0
 
 .text_keys
-    EQUS "Z", 10, "X", 10, "K", 10, "L", 10, "SPACE", 0
+    EQUS "Z", 10, "X", 10, "K", 10, "M", 10, "SPACE", 0
 
 .text_meaning
     EQUS "Anti", 0
 .text_right
     EQUS "clockwise", 10
     EQUS "Clockwise", 10
-    EQUS "  Nose up", 10
     EQUS "Nose down", 10
+    EQUS "  Nose up", 10
     EQUS "   Thrust", 0
 .text_dead
     EQUS "Oh dear, it looks like", 10
