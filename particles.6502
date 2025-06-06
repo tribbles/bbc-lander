@@ -1,30 +1,6 @@
 ; Particle calculations
 
-particle_count = 16
-
-.particle_xl
-    SKIP particle_count
-.particle_xh
-    SKIP particle_count
-.particle_dx
-    SKIP particle_count
-.particle_yl
-    SKIP particle_count
-.particle_yh
-    SKIP particle_count
-.particle_ye
-    SKIP particle_count
-.particle_dy
-    SKIP particle_count
-.particle_zl
-    SKIP particle_count
-.particle_zh
-    SKIP particle_count
-.particle_dz
-    SKIP particle_count
-.particle_age
-    SKIP particle_count
-.particle_end
+    INCLUDE "constants.6502"
 
 MACRO MOVPARTXZ dirl, dirh, thrust, delta, negthrust
 {

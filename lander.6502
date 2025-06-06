@@ -9,7 +9,7 @@ screen2     = &6800
 
 displaysize = 7
 centresize  = 3
-maxypos     = 24 * 8
+maxypos     = 25 * 8
 platheight  = 42
 land_offset = 40
 
@@ -21,6 +21,7 @@ DEF_3DX = TRUE
     GUARD    screen1
 ;GUARD    map
 
+    INCLUDE "constants.6502"
     INCLUDE "zeropage.6502"
     INCLUDE "macros.6502"
 
@@ -96,6 +97,7 @@ ENDIF
     STA lastcol
 
     INCLUDE "landplot.6502"
+    INCLUDE "stars.6502"
     INCLUDE "keyboard.6502"
     INCLUDE "thrustcalc.6502"
     INCLUDE "baseptr.6502"
@@ -131,6 +133,7 @@ ENDIF
     INCLUDE "particles.6502"
     INCLUDE "gamestart.6502"
     INCLUDE "ship3d.6502"
+    INCLUDE "extradata.6502"
 
     ALIGN 256
 .map

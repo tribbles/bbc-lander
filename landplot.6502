@@ -117,6 +117,13 @@
 
 ; Loop 4 - trees
 {
+    LDA player_y1
+    BNE notrees
+    LDA player_y
+    BPL candotrees
+.notrees
+    JMP done
+.candotrees
     LDA #255
     STA pixelmask
     STA pixelmask + 1
@@ -131,38 +138,40 @@
 .zloop
     LDY offset
     LDA collocs, Y
-    BPL notree
+    BPL notree1
+
+    LDX jtmp
+    LDA treeheight, X
+    STA treeh
 
     LDA xlocs, Y
     STA x1
     STA x0
     STA treecx
     LDA ylocs, Y
+    CMP #maxypos
+    BEQ notree1
     STA y1
     STA treey
 
-; Plot the trunk
-    LDX jtmp
-    LDA treeheight, X
-    STA treeh
-    LDA y1
+; Calculate the base of the triangle
     SEC
     SBC treeh
-.treeokay
-    STA y0
-    STA treey
-    JSR plot_line
+    SBC treeh
+    SBC treeh
+; Trivial check to see if the tree is on-screen
+    CMP #23 * 8 - 1
+    BCC istree
+.notree1
+    JMP notree
+.istree
 
-; Plot the base of the triangle
-    LDA treey
-    STA y1
     LDA treecx
     SEC
     SBC treeh
     BCS left
     LDA #0
 .left
-    STA x0
     STA ocoord
     LDA treecx
     CLC
@@ -170,22 +179,47 @@
     BCC right
     LDA #255
 .right
-    STA x1
     STA treerx
+
+; Get the top of the trunk
+    LDA y1
+    SEC
+    SBC treeh
+    STA treey
+    CMP #23 * 8 - 1
+    BCS no_trunk
+
+; Tree trunk is visible (which also means the base of the triangle)
+    STA y0
+; Plot the trunk
     JSR plot_line
 
-; Plot the left of the triangle
+; Plot the base of the triangle
     LDA treelx
-    STA x1
-    LDA treecx
     STA x0
+    LDA treerx
+    STA x1
+    LDA treey
+    STA y1
+    STA y0
+    JSR plot_line
+.no_trunk
+
     LDA treey
     STA y1
     SEC
     SBC treeh
     SBC treeh
     STA y0
-    STA treeh       ; Don't need the height any more
+;    CMP #23 * 8
+;    BCS notree
+    STA treeh       ; Don't need the height any more - but we do need the top Y coordinate
+
+; Plot the left of the triangle
+    LDA treelx
+    STA x1
+    LDA treecx
+    STA x0
     JSR plot_line
 ; Plot the right of the triangle
     LDA treecx
@@ -200,7 +234,9 @@
 .notree
     INC offset
     DEC jtmp + 1
-    BPL zloop
+    BMI zdone
+    JMP zloop
+.zdone
     DEC jtmp
     BMI done
     JMP xloop

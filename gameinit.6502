@@ -13,6 +13,9 @@
     LDA #127
     STA mapx
     STA mapz
+    STA last_altitude
+    STA last_altitude + 1
+    STA last_heading
 
     LDA #platheight
     STA player_y

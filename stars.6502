@@ -1,0 +1,78 @@
+    INCLUDE "constants.6502"
+
+.plot_stars
+{
+    LDA player_y1
+    BNE allstars
+    LDA player_y
+    CMP #88
+    BCC nostars
+.allstars
+    LDA #255
+    STA pixelmask + 0
+    STA pixelmask + 1
+;    STA pixelmask + 1
+    RAND8
+    BMI notwinkle
+;    TAY
+    AND #7
+    TAX
+    LDA bitsoff, X
+    STA pixelmask + 0
+    STA pixelmask + 1
+.notwinkle
+;    TYA
+;    LSR A
+;    LSR A
+;    LSR A
+;    LSR A
+;    AND #15
+;    TAX
+;    LDA bitsoff, X
+;    STA pixelmask + 1
+
+    LDX #star_count - 1
+.starloop
+    STX jtmp
+
+    TXA
+    ASL A
+    ASL A
+    SBC #8
+    STA x1
+
+    LDA player_y1
+    STA y1
+    LDA player_y
+    LSR y1
+    ROR A
+    LSR y1
+    ROR A
+    LSR y1
+    ROR A
+    STA y0
+
+    SEC
+    SBC x1
+    CMP #16
+    BCC noplot
+    TAY
+
+    LDA mapx
+    STA x0
+    LDA mapx + 1
+    AND #63
+    ASL x0
+    ROL A
+    ASL x0
+    ROL A
+    CLC
+    ADC star_x, X
+    TAX
+    JSR pixel
+    LDX jtmp
+.noplot
+    DEX
+    BPL starloop
+.nostars
+}
