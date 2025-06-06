@@ -158,6 +158,7 @@ GUARD &90
 .update_fuel
     SKIP 1
 .update_score
+    SKIP 1
 
 .current_particle
     SKIP 1
