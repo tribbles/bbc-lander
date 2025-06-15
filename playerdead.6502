@@ -1,3 +1,10 @@
+    LDA #15
+    STA volume
+    JSR set_volume
+    LDX #LO(lowtone1)
+    LDY #HI(lowtone1)
+    LDA #4
+    JSR set_voicebytes
     LDA current_screen_hi
     CLC
     ADC #2
@@ -103,7 +110,17 @@
 
     JSR swap_banks
 
+    LDA #0
+    STA temp_scene
 .wait_return
+    LDA #19
+    JSR osbyte          ; VSync
+    DEC temp_scene
+    BPL check_key
+    LDA #8
+    STA temp_scene
+    JSR set_volume
+.check_key
     LDA #&81
     LDY #&ff
     LDX #LO(-74)        ; Return

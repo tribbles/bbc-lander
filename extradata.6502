@@ -1,14 +1,9 @@
-
-
-
-
 .star_x
     EQUB &20, &f3, &05, &77, &ac, &3e, &6d, &e1 ; Used 02367aef | 01357cde
     EQUB &92, &4f, &6a, &a6, &5b, &18, &b4, &89 ; Need 14589bcd | 24689abf
 
 .bitsoff
     EQUD &fefdfbf7, &efdfbf7f
-    EQUD &ffffffff, &ffffffff
 
 .particle_xl
     SKIP particle_count

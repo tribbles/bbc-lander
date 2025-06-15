@@ -178,6 +178,8 @@ GUARD &90
     SKIP 1
 .scoreinc
     SKIP 1
+.volume
+    SKIP 1
 
 .temp_scene     ; Temporary data for the current scene (operation)
     SKIP 16

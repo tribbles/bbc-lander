@@ -1,4 +1,5 @@
 ; Some macros...
+sysvia = &fe40
 
 ; Decrements the thrust amount
 MACRO THRUSTDEC addr
@@ -66,5 +67,15 @@ MACRO RAND16
     EOR #&d7
 .no_eor
     STA mathc
+}
+ENDMACRO
+
+MACRO THRUSTSOUND
+{
+    
+    LDA #7
+    LDX #LO(thrust_sndblk)
+    LDY #HI(thrust_sndblk)
+    JSR osword
 }
 ENDMACRO

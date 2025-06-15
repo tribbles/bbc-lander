@@ -3,8 +3,10 @@
 .gamestart
 {
     LDA #0
+    STA volume
     STA yangle
     STA spinz
+    JSR init_sound
 .initloop
     LDA yangle
     ASL A

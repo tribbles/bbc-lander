@@ -11,25 +11,14 @@
     LDA #255
     STA pixelmask + 0
     STA pixelmask + 1
-;    STA pixelmask + 1
     RAND8
     BMI notwinkle
-;    TAY
     AND #7
     TAX
     LDA bitsoff, X
     STA pixelmask + 0
     STA pixelmask + 1
 .notwinkle
-;    TYA
-;    LSR A
-;    LSR A
-;    LSR A
-;    LSR A
-;    AND #15
-;    TAX
-;    LDA bitsoff, X
-;    STA pixelmask + 1
 
     LDX #star_count - 1
 .starloop

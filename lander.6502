@@ -3,6 +3,7 @@
 oswrch      = &ffee
 oscli       = &fff7
 osbyte      = &fff4
+osword      = &fff1
 screen      = &6800
 screen1     = &5000
 screen2     = &6800
@@ -33,6 +34,7 @@ DEF_3DX = TRUE
     JSR oscli
     JSR set_mode
     JSR init_screen
+    JSR init_sound
     JSR clear_bank
     JSR swap_banks
     JSR clear_bank
@@ -104,6 +106,7 @@ ENDIF
 
     JSR plot_ship
     JSR plot_particles
+    JSR set_volume
 
     LDA onplatform
     BMI player_dead
@@ -132,6 +135,7 @@ ENDIF
     INCLUDE "math.6502"
     INCLUDE "particles.6502"
     INCLUDE "gamestart.6502"
+    INCLUDE "sound.6502"
     INCLUDE "ship3d.6502"
     INCLUDE "extradata.6502"
 

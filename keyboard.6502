@@ -123,6 +123,8 @@
     BCS thrust
     JMP nothrust
 .thrust
+    INC volume
+    INC volume
     DEC current_fuel
     BPL fuelcalc_done
     LDA #15
@@ -154,10 +156,6 @@
     ROL A
     ASL mathc
     ROL A
-    ;TAY
-    ;DEY                  ; X direction is negative (for some reason!)
-    ;TYA
-    ;EOR #255
     STA particle_xdir       ; Store this for the particle creation
     THRUSTADD xthrust
 

@@ -1,0 +1,62 @@
+
+.set_volume
+{
+    LDA volume
+    CMP #16
+    BCC volunder
+    LDA #15
+    STA volume
+.volunder
+    SEI
+    LDX #&FF
+    STX sysvia + 3
+    EOR #&FF    ; Set the volume
+    STA sysvia + 1 
+    LDA #0
+    STA sysvia + 0
+    LDX #8
+    STX sysvia + 0
+    CLI
+    DEC volume
+    BPL volover
+    STA volume
+.volover
+    RTS
+}
+
+.init_sound
+{
+    LDX #LO(sndinit)
+    LDY #HI(sndinit)
+    LDA #5
+}
+
+.set_voicebytes
+{
+    STX vbloop + 1
+    STY vbloop + 2
+    TAX
+    DEX
+    BPL svb_done
+    SEI
+    LDA #&FF
+    STA sysvia + 3
+.vbloop
+    LDA &1234, X
+    STA sysvia + 1
+    LDA #0
+    STA sysvia + 0
+    LDA #8
+    STA sysvia + 0
+    DEX
+    BPL vbloop
+    CLI
+.svb_done
+    RTS
+}
+
+.sndinit
+    EQUB &9f, &bf, &df, &ff, &e4
+
+.lowtone1
+    EQUB &df, &cf, &3f, &e3
