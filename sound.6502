@@ -28,7 +28,7 @@
 {
     LDX #LO(sndinit)
     LDY #HI(sndinit)
-    LDA #5
+    LDA #4
 }
 
 .set_voicebytes
@@ -36,8 +36,6 @@
     STX vbloop + 1
     STY vbloop + 2
     TAX
-    DEX
-    BPL svb_done
     SEI
     LDA #&FF
     STA sysvia + 3
