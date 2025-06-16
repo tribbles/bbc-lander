@@ -35,17 +35,19 @@
 {
     STX vbloop + 1
     STY vbloop + 2
+    LDY #0
     TAX
     SEI
     LDA #&FF
     STA sysvia + 3
 .vbloop
-    LDA &1234, X
+    LDA &1234, Y
     STA sysvia + 1
     LDA #0
     STA sysvia + 0
     LDA #8
     STA sysvia + 0
+    INY
     DEX
     BPL vbloop
     CLI
@@ -54,7 +56,10 @@
 }
 
 .sndinit
-    EQUB &9f, &bf, &df, &ff, &e4
+    EQUB &9f, &bf, &df, &ff, &e5
 
 .lowtone1
-    EQUB &df, &cf, &3f, &e3
+    EQUB &df, &c7, &30, &e7
+
+.tone2
+    EQUB 0, 0

@@ -112,20 +112,54 @@
 
     LDA #0
     STA temp_scene
+    STA temp_scene + 1
 .wait_return
     LDA #19
     JSR osbyte          ; VSync
     DEC temp_scene
     BPL check_key
+
     LDA #8
     STA temp_scene
+
     JSR set_volume
+    LDA volume
+    BEQ check_key
+    LDX temp_scene + 1
+
+    LDA divtableLY, X ; &e0
+    STA temp_scene + 2
+    LDA divtableHY, X ; &03
+    ASL temp_scene + 2  ; &c0
+    ROL A               ; &07
+    ASL temp_scene + 2  ; &80
+    ROL A               ; &0f
+    EOR #&3f            ; &30
+    STA tone2 + 1
+    LDA temp_scene + 2  ; &80
+    LSR A               ; &40
+    LSR A               ; &20
+    LSR A               ; &10
+    LSR A               ; &08
+    EOR #&c7            ; &c7
+    STA tone2 + 0
+
+    LDX #LO(tone2)
+    LDY #HI(tone2)
+    LDA #1
+    JSR set_voicebytes
+    INC temp_scene + 1
+    INC temp_scene + 1
+    INC temp_scene + 1
 .check_key
     LDA #&81
     LDY #&ff
     LDX #LO(-74)        ; Return
     JSR osbyte
     BCC wait_return
+    LDA #0
+    STA volume
+    JSR set_volume
 .wait_release
     LDA #&81
     LDY #&ff
