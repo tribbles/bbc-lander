@@ -28,10 +28,13 @@
 {
     LDX #LO(sndinit)
     LDY #HI(sndinit)
-    LDA #4
+    LDA #5
 }
 
 .set_voicebytes
+; X is low pointer
+; Y is high pointer
+; A is #bytes to write
 {
     STX vbloop + 1
     STY vbloop + 2
@@ -49,7 +52,7 @@
     STA sysvia + 0
     INY
     DEX
-    BPL vbloop
+    BNE vbloop
     CLI
 .svb_done
     RTS

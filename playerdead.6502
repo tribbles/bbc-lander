@@ -3,7 +3,7 @@
     JSR set_volume
     LDX #LO(lowtone1)
     LDY #HI(lowtone1)
-    LDA #3
+    LDA #4
     JSR set_voicebytes
     LDA current_screen_hi
     CLC
@@ -146,7 +146,7 @@
 
     LDX #LO(tone2)
     LDY #HI(tone2)
-    LDA #1
+    LDA #2
     JSR set_voicebytes
     INC temp_scene + 1
     INC temp_scene + 1
