@@ -1,11 +1,17 @@
 crtcreg  = &fe00
 crtcval  = &fe01
 ula      = &fe20
+usrvia   = &fe60
 heading_addr = &0011
 altitude_addr = &0110
 direction_addr = &0032
 score_addr = &00c9
 fuel_addr = &01d0
+
+irq1 = &204
+irq2 = &220
+row = 5
+delay = 63 * (row * 8 + 37) + 12
 
 .set_mode
 {
@@ -50,8 +56,122 @@ fuel_addr = &01d0
     ORA #128
     STA &fe30
 .beeb
+; This bit of code is heavily influenced from https://stardot.org.uk/forums/viewtopic.php?t=16206
+; which in turn is taken from https://stardot.org.uk/forums/viewtopic.php?f=3&t=4339&hilit=interrupt+handling
+    LDA irq1
+    STA jmpirq1 + 1
+    LDA irq1 + 1
+    STA jmpirq1 + 2
+
+    LDA irq2
+    STA jmpirq2 + 1
+    LDA irq2 + 1
+    STA jmpirq2 + 2
+
+    SEI
+
+    LDA #LO(setcolirq)
+    STA irq1
+    LDA #HI(setcolirq)
+    STA irq1 + 1
+
+    LDA #LO(vsync)
+    STA irq2
+    LDA #HI(vsync)
+    STA irq2 + 1
+
+    LDA #14
+    LDX #4
+    JSR osbyte      ; Enable vsync events
+
+    ;LDA #&30
+    ;STA sysvia + 14
+
+    LDA #&7f
+    STA usrvia + 14
+
+    LDA #&a0
+    STA usrvia + 14
+
+    LDA #&00
+    STA usrvia + 11
+
+    LDA #LO(delay)
+    STA usrvia + 4
+
+;    LDA #2
+;    STA sysvia + 13
+;
+;    LDX #HI(delay)
+;.wait_vsync
+;    BIT sysvia + 13
+;    BEQ wait_vsync
+;
+;    STX usrvia + 5
+;    LDA #&fe
+;    STA usrvia + 6
+;    LDA #&4d
+;    STA usrvia + 7
+    CLI
+
     LDX #&4
     JMP set_colour
+
+.vsync
+    CMP #4
+    BNE jmpirq2
+    LDA #LO(delay)
+    STA usrvia + 8
+    LDA #HI(delay)
+    STA usrvia + 9
+    LDA #&81
+    ;LDA #&06
+    STA ula+ 1
+    EOR #&10    ; 9x
+    STA ula + 1
+    EOR #&30    ; ax
+    STA ula + 1
+    EOR #&10    ; bx
+    STA ula + 1
+    EOR #&60    ; cx
+    STA ula + 1
+    EOR #&10    ; dx
+    STA ula + 1
+    EOR #&30    ; ex
+    STA ula + 1
+    EOR #&10        ; fx
+    STA ula + 1
+    LDA #4
+.jmpirq2
+    JMP &1234
+
+.setcolirq
+    LDA usrvia + 13
+    AND #&20
+    BEQ jmpirq1
+
+    STA usrvia + 13
+    LDA usrvia + 8
+
+    LDA #&80
+    ;LDA #&07
+    STA ula+ 1
+    EOR #&10    ; 9x
+    STA ula + 1
+    EOR #&30    ; ax
+    STA ula + 1
+    EOR #&10    ; bx
+    STA ula + 1
+    EOR #&60    ; cx
+    STA ula + 1
+    EOR #&10    ; dx
+    STA ula + 1
+    EOR #&30    ; ex
+    STA ula + 1
+    EOR #&10        ; fx
+    STA ula + 1
+.jmpirq1
+    JMP &1234
 }
 
 .plot_line
