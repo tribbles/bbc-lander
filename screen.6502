@@ -10,8 +10,10 @@ fuel_addr = &01d0
 
 irq1 = &204
 irq2 = &220
-row = 5
-delay = 63 * (row * 8 + 37) + 12
+row1 = 5
+delay1 = 63 * (row1 * 8 + 37) + 12
+row2 = 25
+delay2 = 63 * (row1 * 8 + 37) + 12
 
 .set_mode
 {
@@ -96,7 +98,7 @@ delay = 63 * (row * 8 + 37) + 12
     LDA #&00
     STA usrvia + 11
 
-    LDA #LO(delay)
+    LDA #LO(delay1)
     STA usrvia + 4
 
 ;    LDA #2
@@ -120,9 +122,9 @@ delay = 63 * (row * 8 + 37) + 12
 .vsync
     CMP #4
     BNE jmpirq2
-    LDA #LO(delay)
+    LDA #LO(delay1)
     STA usrvia + 8
-    LDA #HI(delay)
+    LDA #HI(delay1)
     STA usrvia + 9
     LDA #&81
     ;LDA #&06
