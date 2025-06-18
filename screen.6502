@@ -12,8 +12,8 @@ irq1 = &204
 irq2 = &220
 row1 = 5
 delay1 = 63 * (row1 * 8 + 37) + 12
-row2 = 25
-delay2 = 63 * (row1 * 8 + 37) + 12
+row2 = 26
+delay2 = 63 * (row2 * 8 + 39) + 12
 
 .set_mode
 {
@@ -46,18 +46,6 @@ delay2 = 63 * (row1 * 8 + 37) + 12
     
     LDA #HI(screen)
     STA current_screen_hi
-
-    LDA #0
-    LDX #1
-    JSR osbyte
-    CPX #3
-    BCC beeb
-    LDA #&89
-    STA font_addr_base + 1
-    LDA &fe30
-    ORA #128
-    STA &fe30
-.beeb
 ; This bit of code is heavily influenced from https://stardot.org.uk/forums/viewtopic.php?t=16206
 ; which in turn is taken from https://stardot.org.uk/forums/viewtopic.php?f=3&t=4339&hilit=interrupt+handling
     LDA irq1
@@ -86,13 +74,10 @@ delay2 = 63 * (row1 * 8 + 37) + 12
     LDX #4
     JSR osbyte      ; Enable vsync events
 
-    ;LDA #&30
-    ;STA sysvia + 14
-
     LDA #&7f
     STA usrvia + 14
 
-    LDA #&a0
+    LDA #&e0
     STA usrvia + 14
 
     LDA #&00
@@ -101,20 +86,34 @@ delay2 = 63 * (row1 * 8 + 37) + 12
     LDA #LO(delay1)
     STA usrvia + 4
 
-;    LDA #2
-;    STA sysvia + 13
-;
-;    LDX #HI(delay)
-;.wait_vsync
-;    BIT sysvia + 13
-;    BEQ wait_vsync
-;
-;    STX usrvia + 5
-;    LDA #&fe
-;    STA usrvia + 6
-;    LDA #&4d
-;    STA usrvia + 7
+    LDX #LO(delay1)
+    LDY #LO(delay2)
+    STX usrvia + 8
+    STY usrvia + 4
+
     CLI
+
+    LDA #0
+    LDX #1
+    JSR osbyte
+    CPX #3
+    BCC beeb
+    LDA #&0e
+    STA font_addr_base + 1
+    LDX #0
+    LDA &fe30
+    ORA #128
+    STA &fe30
+.copy_font
+    LDA &8900, X    ; 32 characters
+    STA &0E00, X
+    LDA &8A00, X    ; 64 characters
+    STA &0F00, X
+    LDA &8B00, X    ; 96 characters
+    STA &1000, X
+    DEX
+    BNE copy_font
+.beeb
 
     LDX #&4
     JMP set_colour
@@ -122,13 +121,16 @@ delay2 = 63 * (row1 * 8 + 37) + 12
 .vsync
     CMP #4
     BNE jmpirq2
-    LDA #LO(delay1)
-    STA usrvia + 8
+
     LDA #HI(delay1)
     STA usrvia + 9
-    LDA #&81
-    ;LDA #&06
-    STA ula+ 1
+    LDA #HI(delay2)
+    STA usrvia + 5
+
+.*topcol
+    LDA #&84
+    ; LDA #&03
+    STA ula + 1
     EOR #&10    ; 9x
     STA ula + 1
     EOR #&30    ; ax
@@ -141,11 +143,24 @@ delay2 = 63 * (row1 * 8 + 37) + 12
     STA ula + 1
     EOR #&30    ; ex
     STA ula + 1
-    EOR #&10        ; fx
+    EOR #&10    ; fx
     STA ula + 1
-    LDA #4
+
 .jmpirq2
     JMP &1234
+
+.setcolirq2
+    LDA usrvia + 13
+    AND #&40
+    BEQ jmpirq1
+
+    STA usrvia + 13
+    LDA usrvia + 4
+
+.*botcol
+    LDA #&81
+    ;LDA #&06
+    BNE do_col
 
 .setcolirq
     LDA usrvia + 13
@@ -154,10 +169,11 @@ delay2 = 63 * (row1 * 8 + 37) + 12
 
     STA usrvia + 13
     LDA usrvia + 8
-
+.*midcol
     LDA #&80
     ;LDA #&07
-    STA ula+ 1
+.do_col
+    STA ula + 1
     EOR #&10    ; 9x
     STA ula + 1
     EOR #&30    ; ax
@@ -170,8 +186,16 @@ delay2 = 63 * (row1 * 8 + 37) + 12
     STA ula + 1
     EOR #&30    ; ex
     STA ula + 1
-    EOR #&10        ; fx
+    EOR #&10    ; fx
     STA ula + 1
+    LDA irq1
+    EOR #LO(setcolirq) EOR LO(setcolirq2)
+    STA irq1
+IF HI(setcolirq) <> HI(setcolirq2)
+    LDA irq1 + 1
+    EOR #HI(setcolirq) EOR HI(setcolirq2)
+    STA irq1 + 1
+ENDIF
 .jmpirq1
     JMP &1234
 }

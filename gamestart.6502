@@ -2,6 +2,11 @@
 
 .gamestart
 {
+    LDA #&84
+    STA midcol + 1
+    LDA #&80
+    STA topcol + 1
+    STA botcol + 1
     LDA #0
     STA volume
     STA yangle
@@ -79,4 +84,11 @@
     JSR osbyte
     BCC initloop
 }
+    LDA #&84
+    STA topcol + 1
+    LDA #&80
+    STA midcol + 1
+    LDA #&81
+    STA botcol + 1
+
     RTS

@@ -1,3 +1,10 @@
+    LDA #&86
+    STA topcol + 1
+    LDA #&82
+    STA midcol + 1
+    LDA #&86
+    STA botcol + 1
+
     LDA #15
     STA volume
     JSR set_volume
