@@ -257,10 +257,12 @@ y  = ltmpa
     AND (laddr), Y
     ORA lmask + 2
     STA (laddr), Y
+    
     LDA laddr
     CLC
     ADC #8
     STA laddr
+
 .hline_run
     LDA x0
     AND #&f8
@@ -272,25 +274,28 @@ y  = ltmpa
     SEC
     SBC x0
     STA x1
-    LSR A
-    LSR A
-    LSR A
+    AND #&f8
     BEQ hline_singleremaining
+
     STA x0
-    TAX
-    LDY #0
+    TAY
+.hlrun_loop
+    BEQ hldone
+    SEC
+    SBC #8
+    TAY
 .hline_loop
     LDA #&ff
     STA (laddr), Y
+    TYA
+    BNE hlrun_loop
 
+.hldone
     LDA laddr
     CLC
-    ADC #&8
+    ADC x0
     STA laddr
     
-    DEX
-    BNE hline_loop
-
 .hline_singleremaining    
     LDA x1
     AND #7
@@ -301,6 +306,7 @@ y  = ltmpa
     STA lmask + 2
     TXA
     EOR #&ff
+    LDY #0
     AND (laddr), Y
     ORA lmask + 2
     STA (laddr), Y
@@ -311,7 +317,7 @@ y  = ltmpa
 .single_byte
     LDA x0
     AND #7
-    BEQ sb_left
+    BEQ sb_left     ; It's aligned to the left
     TAX
     LDA x1
     AND #7
@@ -328,11 +334,12 @@ y  = ltmpa
     ORA lmask + 2
     STA (laddr), Y
     RTS
+
 .sb_left
     LDA x1
     AND #7
     CMP #7
-    BEQ sb_whole
+    BEQ sb_whole    ; It's also aligned to the right
     TAX
     LDA leftbits, X
     TAX
@@ -345,6 +352,7 @@ y  = ltmpa
     ORA lmask + 2
     STA (laddr), Y
     RTS
+
 .sb_whole
     LDA lmask
     LDY #0
