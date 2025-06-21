@@ -276,37 +276,35 @@ ENDIF
     EOR #&ff
     CLC
     ADC #1
-    STA plerror  ; error = -(dx / 2)
-    LDA x0
-    STA plx      ; x = x0
-    STA pllast
-    LDA y0
-    STA ply      ; y = y0
+    LDY x0
+    STY pllast
+    LDX y0
+    STX ply      ; y = y0
+
 .plq1_loop
-    LDX plx
-    CPX x1
+; A is error, Y is X coordinate
+    CPY x1
     BEQ plq1_done
-    LDA plerror
     CLC
     ADC dy       ; error = error + dy
     BPL plq1_inc
-    STA plerror
-    INC plx
+    INY
     JMP plq1_loop
 
 .plq1_inc
+    STY plx
     SEC
     SBC dx       ; error = error - dx
     STA plerror
     
     LDA ply
     LDX pllast
-    LDY plx
     JSR hline
-    INC plx
-    LDA plx
-    STA pllast
+    LDY plx
+    INY
+    STY pllast
     INC ply
+    LDA plerror
     JMP plq1_loop
     
 .plq1_done
@@ -324,43 +322,39 @@ ENDIF
     EOR #&ff
     CLC
     ADC #1
-    STA plerror  ; error = -(dx / 2)
-    LDA x0
-    STA plx      ; x = x0
-    STA pllast
-    LDA y0
-    STA ply      ; y = y0
+    LDY x0
+    STY pllast
+    LDX y0
+    STX ply      ; y = y0
+
 .plq2_loop
-    LDX plx
-    CPX x1
+    CPY x1
     BEQ plq2_done
-    LDA plerror
     CLC
     ADC dy       ; error = error + dy
     BPL plq2_inc
-    STA plerror
-    INC plx
+    INY
     JMP plq2_loop
 
 .plq2_inc
+    STY plx
     SEC
     SBC dx       ; error = error - dx
     STA plerror
     
     LDA ply
     LDX pllast
-    LDY plx
     JSR hline
-    INC plx
-    LDA plx
-    STA pllast
+    LDY plx
+    INY
+    STY pllast
     DEC ply
+    LDA plerror
     JMP plq2_loop
     
 .plq2_done
     LDA ply
     LDX pllast
-    LDY x1
     JMP hline
 }
 
@@ -372,42 +366,38 @@ ENDIF
     EOR #&ff
     CLC
     ADC #1
-    STA plerror  ; error = -(dy / 2)
-    LDA y0
-    STA ply
-    STA pllast
-    LDA x0
-    STA plx
+    LDY y0
+    STY pllast
+    LDX x0
+    STX plx
+
 .plq3_loop
-    LDX ply
-    CPX y1
+    CPY y1
     BEQ plq3_done
-    LDA plerror
     CLC
     ADC dx       ; error = error + dx
     BPL plq3_inc
-    STA plerror
-    INC ply
+    INY
     JMP plq3_loop
     
 .plq3_inc
+    STY ply
     SEC
     SBC dy       ; error = error - dy
     STA plerror
     LDA plx
     LDX pllast
-    LDY ply
     JSR vline
-    INC ply
-    LDA ply
-    STA pllast
+    LDY ply
+    INY
+    STY pllast
     INC plx
+    LDA plerror
     JMP plq3_loop
     
 .plq3_done
     LDA plx
     LDX pllast
-    LDY y1
     JMP vline
 }
 
@@ -419,42 +409,38 @@ ENDIF
     EOR #&ff
     CLC
     ADC #1
-    STA plerror  ; error = -(dy / 2)
-    LDA y1
-    STA ply
-    STA pllast
-    LDA x1
-    STA plx
+    LDY y1
+    STY pllast
+    LDX x1
+    STX plx
+
 .plq4_loop
-    LDX ply
-    CPX y0
+    CPY y0
     BEQ plq4_done
-    LDA plerror
     CLC
     ADC dx       ; error = error + dx
     BPL plq4_inc
-    STA plerror
-    INC ply
+    INY
     JMP plq4_loop
     
 .plq4_inc
+    STY ply
     SEC
     SBC dy       ; error = error - dy
     STA plerror
     LDA plx
     LDX pllast
-    LDY ply
     JSR vline
-    INC ply
-    LDA ply
-    STA pllast
+    LDY ply
+    INY
+    STY pllast
     DEC plx
+    LDA plerror
     JMP plq4_loop
     
 .plq4_done
     LDA plx
     LDX pllast
-    LDY y0
     JMP vline
 }
 
