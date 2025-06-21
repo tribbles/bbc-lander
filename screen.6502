@@ -1,6 +1,7 @@
 crtcreg  = &fe00
 crtcval  = &fe01
 ula      = &fe20
+sysvia   = &fe40
 usrvia   = &fe60
 heading_addr = &0011
 altitude_addr = &0110

@@ -1,5 +1,4 @@
 ; Some macros...
-sysvia = &fe40
 
 ; Decrements the thrust amount
 MACRO THRUSTDEC addr
