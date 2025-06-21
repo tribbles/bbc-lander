@@ -7,6 +7,9 @@
     LDA #&80
     STA topcol + 1
     STA botcol + 1
+    LDA #&07
+    JSR set_bgcol
+
     LDA #0
     STA volume
     STA yangle

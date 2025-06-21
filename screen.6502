@@ -116,8 +116,10 @@ delay2 = 63 * (row2 * 8 + 39) + 12
     BNE copy_font
 .beeb
 
-    LDX #&4
-    JMP set_colour
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
+    RTS
 
 .vsync
     CMP #4
@@ -199,6 +201,26 @@ IF HI(setcolirq) <> HI(setcolirq2)
 ENDIF
 .jmpirq1
     JMP &1234
+}
+
+.set_bgcol
+{
+    STA ula + 1
+    EOR #&10    ; 1x
+    STA ula + 1
+    EOR #&30    ; 2x
+    STA ula + 1
+    EOR #&10    ; 3x
+    STA ula + 1
+    EOR #&60    ; 4x
+    STA ula + 1
+    EOR #&10    ; 5x
+    STA ula + 1
+    EOR #&30    ; 6x
+    STA ula + 1
+    EOR #&10    ; 7x
+    STA ula + 1
+    RTS
 }
 
 .plot_line
@@ -447,31 +469,6 @@ ENDIF
     LDA plx
     LDX pllast
     JMP vline
-}
-
-    ALIGN 8
-.bits
-    EQUB 128, 64, 32, 16, 8, 4, 2, 1
-.leftbits
-    EQUB &80, &c0, &e0, &f0, &f8, &fc, &fe, &ff
-.rightbits
-    EQUB &ff, &7f, &3f, &1f, &0f, &07, &03, &01
-.shl6
-    EQUB 0, 64, 128, 192
-
-.set_colour
-{
-; X is colour
-    LDA c1, X
-    STA pixelmask
-    LDA c2, X
-    STA pixelmask + 1
-    RTS
-
-.c1
-    EQUB &00, &55, &55, &ff, &ff
-.c2
-    EQUB &00, &00, &aa, &aa, &ff
 }
 
 .modevars

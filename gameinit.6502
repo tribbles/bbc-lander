@@ -1,7 +1,8 @@
 ; Initialises a new game
 
-    LDX #4
-    JSR set_colour
+    LDA #255
+    STA pixelmask
+    STA pixelmask + 1
 
     LDA #192
     STA yangle

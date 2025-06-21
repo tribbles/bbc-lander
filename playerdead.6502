@@ -1,9 +1,11 @@
-    LDA #&86
+    LDA #&80
     STA topcol + 1
-    LDA #&82
+    LDA #&84
     STA midcol + 1
-    LDA #&86
+    LDA #&80
     STA botcol + 1
+    LDA #&06
+    JSR set_bgcol
 
     LDA #15
     STA volume

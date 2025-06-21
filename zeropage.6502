@@ -44,7 +44,7 @@ GUARD &90
 .lend
     SKIP 2
 .lmask
-    SKIP 3
+    SKIP 2
 .lpres
     SKIP 2
 .jtmp

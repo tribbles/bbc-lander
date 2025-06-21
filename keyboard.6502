@@ -213,6 +213,8 @@
     CMP lastz
     BEQ no_inczscore
     STA lastz
+    LDA onplatform
+    BNE no_incscore
     INC scoreinc
 .no_inczscore
     LDA scoreinc

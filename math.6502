@@ -513,3 +513,12 @@ NEXT
     FOR n, 1, 64
     EQUB 8192 / (n + 127)
 NEXT
+
+.bits
+    EQUB 128, 64, 32, 16, 8, 4, 2, 1
+.leftbits
+    EQUB &80, &c0, &e0, &f0, &f8, &fc, &fe, &ff
+.rightbits
+    EQUB &ff, &7f, &3f, &1f, &0f, &07, &03, &01
+.shl6
+    EQUB 0, 64, 128, 192

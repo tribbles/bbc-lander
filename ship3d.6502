@@ -370,6 +370,7 @@ ENDIF
     STA tab2 + 1
     DEC jtmp + 1
     BPL vis_loop
+    LSR maxshipy
     RTS
 .ss_xneg
     LSR A
