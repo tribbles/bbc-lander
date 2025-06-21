@@ -232,17 +232,19 @@ ENDIF
     BCC pl_dxgtdy
     INX
     INX
+
 .pl_dxgtdy
     LDA quadrant_h, X
-    PHA
+    STA pl_jump + 2
     LDA quadrant_l, X
-    PHA
-    RTS
+    STA pl_jump + 1
+.pl_jump
+    JMP &1234
     
 .quadrant_h
-    EQUB HI(plq1 - 1), HI(plq2 - 1), HI(plq3 - 1), HI(plq4 - 1)
+    EQUB HI(plq1), HI(plq2), HI(plq3), HI(plq4)
 .quadrant_l
-    EQUB LO(plq1 - 1), LO(plq2 - 1), LO(plq3 - 1), LO(plq4 - 1)
+    EQUB LO(plq1), LO(plq2), LO(plq3), LO(plq4)
 
 .plot_vline
     LDA x0
