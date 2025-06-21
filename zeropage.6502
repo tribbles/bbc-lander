@@ -2,6 +2,9 @@ ORG &0
 
 GUARD &90
 
+; Best to stick this at zero!
+.pixelmask
+    SKIP 2
 .x0
     SKIP 1
 .y0
@@ -22,8 +25,6 @@ GUARD &90
     SKIP 1
 .pllast
     SKIP 1
-.pixelmask
-    SKIP 2
 .digits
     SKIP 8
 

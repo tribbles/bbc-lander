@@ -328,6 +328,7 @@ ENDIF
     STX ply      ; y = y0
 
 .plq2_loop
+; A is error, Y is X coordinate
     CPY x1
     BEQ plq2_done
     CLC
@@ -372,6 +373,7 @@ ENDIF
     STX plx
 
 .plq3_loop
+; A is error, Y is Y coordinate
     CPY y1
     BEQ plq3_done
     CLC
@@ -415,6 +417,7 @@ ENDIF
     STX plx
 
 .plq4_loop
+; A is error, Y is Y coordinate
     CPY y0
     BEQ plq4_done
     CLC
