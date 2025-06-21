@@ -15,24 +15,19 @@
 .initloop
     LDA yangle
     ASL A
-    ;ASL A
     JSR hrsin
     CLC
     ADC #64
     LSR A
-    ;SEC
-    ;SBC #8
     STA zangle
     JSR rotate_ship
     LDX #ship_pointcount - 1
 .init_scale
     LDA ship_x2d, X
-    ;ASL A
     CLC
     ADC #128
     STA ship_x2d, X
     LDA ship_y2d, X
-    ;ASL A
     CLC
     ADC #104
     STA ship_y2d, X
